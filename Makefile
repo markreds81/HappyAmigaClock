@@ -40,13 +40,23 @@ ASFLAGS   = -mcpu=68000 -g --register-prefix-optional -I$(SDKDIR)
 LDFLAGS   = -Wl,--emit-relocs,--gc-sections,-Ttext=0,-Map=$(OUT).map
 VASMFLAGS = -m68000 -Felf -opt-fconst -nowarn=62 -dwarf=3 -quiet -x -I. -I$(SDKDIR)
 
-all: $(OUT).exe
+.PHONY: all clean dirs
 
-$(OUT).exe: $(OUT).elf
+dirs:
+ifdef WINDOWS
+	@if not exist obj mkdir obj
+	@if not exist out mkdir out
+else
+	@mkdir -p obj out
+endif
+
+all: dirs $(OUT).exe
+
+$(OUT).exe: dirs $(OUT).elf
 	$(info Elf2Hunk $(program).exe)
 	@elf2hunk $(OUT).elf $(OUT).exe
 
-$(OUT).elf: $(objects)
+$(OUT).elf: dirs $(objects)
 	$(info Linking $(program).elf)
 	@$(CC) $(CCFLAGS) $(LDFLAGS) $(objects) -o $@
 	@m68k-amiga-elf-objdump --disassemble --no-show-raw-ins --visualize-jumps -S $@ >$(OUT).s
