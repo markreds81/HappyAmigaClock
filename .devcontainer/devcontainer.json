@@ -1,0 +1,14 @@
+{
+  "name": "HappyAmigaClock VBCC",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "vbcc",
+  "workspaceFolder": "/work",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools"
+      ]
+    }
+  }
+}
