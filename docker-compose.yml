@@ -1,0 +1,10 @@
+services:
+  vbcc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: happyamigaclock-vbcc:kick13
+    platform: linux/amd64
+    working_dir: /work
+    volumes:
+      - .:/work

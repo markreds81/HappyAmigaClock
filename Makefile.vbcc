@@ -1,0 +1,29 @@
+CC := vc
+
+NDK_INC ?= /opt/sdk/NDK3.9/Include_H
+
+TARGET := dist/HappyAmigaClock
+
+SOURCES := $(sort $(shell find src -type f -name '*.c'))
+HEADERS := $(sort $(shell find include -type f -name '*.h'))
+OBJECTS := $(patsubst src/%.c,build/vbcc/%.o,$(SOURCES))
+
+CPPFLAGS := -Iinclude -I$(NDK_INC)
+CFLAGS := +kick13 -cpu=68000 -O=2
+LDLIBS := -lamiga
+
+.PHONY: all clean
+
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LDLIBS)
+
+build/vbcc/%.o: src/%.c $(HEADERS)
+	mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
+clean:
+	rm -rf build/vbcc
+	rm -f $(TARGET)
