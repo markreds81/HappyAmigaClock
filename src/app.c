@@ -10,8 +10,8 @@ int AppMain(void)
     struct IntuiMessage *msg;
     struct NewWindow nw;
     BOOL done = FALSE;
-    UBYTE *greeting = (UBYTE *)"Hello World!";
-    WORD greetingLen = 12;
+    UBYTE *greeting = (UBYTE *)"Hello World - Ciao Mondo!";
+    WORD greetingLen = 25;
     WORD textX, textY;
 
     /* ActiveScreen is valid as soon as Intuition is up, back to KS 1.3 */

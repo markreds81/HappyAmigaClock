@@ -4,16 +4,15 @@ BOOT_ADF ?= $(CURDIR)/emulator/HappyAmigaClock-dev.adf
 VBCC_ROOT ?= /Users/mark/Developer/Amiga/vbcc
 NDK_INC ?= /Users/mark/Developer/Amiga/sdk/NDK_3.9/Include/include_h
 
-# VBCC usa questa variabile per trovare config/ e targets/
 export VBCC := $(VBCC_ROOT)
-
-# Permette al Makefile.vbcc di trovare vc, vlink e vasmm68k_mot
 export PATH := $(VBCC_ROOT)/bin:$(PATH)
-
-# Se Makefile.vbcc usa questa variabile per gli header NDK
 export NDK_INC
 
-.PHONY: all build clean run check-vbcc
+DIST_DIR ?= $(CURDIR)/dist
+ICON_SOURCE := assets/HappyAmigaClock.info
+ICON_TARGET := $(DIST_DIR)/HappyAmigaClock.info
+
+.PHONY: all build clean run check-vbcc install-icon
 
 all: build
 
@@ -22,12 +21,24 @@ check-vbcc:
 		(echo "Errore: vc non trovato in $(VBCC_ROOT)/bin"; exit 1)
 	@test -x "$(VBCC_ROOT)/bin/vlink" || \
 		(echo "Errore: vlink non trovato in $(VBCC_ROOT)/bin"; exit 1)
+	@test -x "$(VBCC_ROOT)/bin/vasmm68k_mot" || \
+		(echo "Errore: vasmm68k_mot non trovato in $(VBCC_ROOT)/bin"; exit 1)
 
 build: check-vbcc
 	$(MAKE) -f Makefile.vbcc
+	$(MAKE) install-icon
+
+install-icon: $(ICON_TARGET)
+
+$(ICON_TARGET): $(ICON_SOURCE) | $(DIST_DIR)
+	cp "$<" "$@"
+
+$(DIST_DIR):
+	mkdir -p "$@"
 
 clean:
 	$(MAKE) -f Makefile.vbcc clean
+	rm -f "$(ICON_TARGET)"
 
 run: build
 	"$(FS_UAE)" "$(FS_UAE_CONFIG)" \
