@@ -1,6 +1,6 @@
 CC := vc
 
-NDK_INC ?= /opt/sdk/NDK3.9/Include_H
+NDK_INC ?= ~/Developer/Amiga/sdk/NDK_3.9/Include/include_h
 
 TARGET := dist/HappyAmigaClock
 
@@ -9,7 +9,7 @@ HEADERS := $(sort $(shell find include -type f -name '*.h'))
 OBJECTS := $(patsubst src/%.c,build/vbcc/%.o,$(SOURCES))
 
 CPPFLAGS := -Iinclude -I$(NDK_INC)
-CFLAGS := +kick13 -cpu=68000 -O=2
+CFLAGS := +kick13 -cpu=68000 -O2
 LDLIBS := -lamiga
 
 .PHONY: all clean

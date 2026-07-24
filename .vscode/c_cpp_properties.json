@@ -6,8 +6,8 @@
       "includePath": [
         "${workspaceFolder}/include",
         "${workspaceFolder}/src",
-        "/opt/sdk/NDK_3.9/Include/include_h",
-        "/opt/vbcc/targets/m68k-kick13/include"
+        "~/Developer/Amiga/sdk/NDK_3.9/Include/include_h",
+        "~/Developer/Amiga/vbcc/targets/m68k-kick13/include"
       ],
       "defines": [
         "__VBCC__=1",
