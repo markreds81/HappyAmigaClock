@@ -18,8 +18,9 @@ struct ClockTime
     UWORD ct_Sec;    /* 0..59   */
 };
 
-/* Length of the buffer required by ClockFormat(), "dd/mm/yyyy hh:mm:ss" + NUL */
-#define CLOCK_STRING_LEN 20
+/* Length of the buffers required by ClockFormatTime()/ClockFormatDate() */
+#define CLOCK_TIME_LEN 9  /* "hh:mm:ss" + NUL */
+#define CLOCK_DATE_LEN 11 /* "dd/mm/yyyy" + NUL */
 
 /*
  * Reads the current date and time (via DateStamp()) and fills 'ct'.
@@ -30,11 +31,18 @@ struct ClockTime
 void ClockNow(struct ClockTime *ct);
 
 /*
- * Formats 'ct' as "dd/mm/yyyy hh:mm:ss" into 'buffer'.
- * 'buffer' must be at least CLOCK_STRING_LEN bytes long.
+ * Formats 'ct' as "hh:mm:ss" into 'buffer'.
+ * 'buffer' must be at least CLOCK_TIME_LEN bytes long.
  * Does not depend on DateToStr() or any sprintf-style formatter.
  */
-void ClockFormat(const struct ClockTime *ct, char *buffer);
+void ClockFormatTime(const struct ClockTime *ct, char *buffer);
+
+/*
+ * Formats 'ct' as "dd/mm/yyyy" into 'buffer'.
+ * 'buffer' must be at least CLOCK_DATE_LEN bytes long.
+ * Does not depend on DateToStr() or any sprintf-style formatter.
+ */
+void ClockFormatDate(const struct ClockTime *ct, char *buffer);
 
 /*
  * TRUE if 'a' represents a later second than 'b'. Used by the caller to

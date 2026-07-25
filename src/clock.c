@@ -88,7 +88,19 @@ static char *putDigits(char *dst, UWORD value, WORD digits)
     return dst;
 }
 
-void ClockFormat(const struct ClockTime *ct, char *buffer)
+void ClockFormatTime(const struct ClockTime *ct, char *buffer)
+{
+    char *p = buffer;
+
+    p = putDigits(p, ct->ct_Hour, 2);
+    *p++ = ':';
+    p = putDigits(p, ct->ct_Min, 2);
+    *p++ = ':';
+    p = putDigits(p, ct->ct_Sec, 2);
+    *p   = '\0';
+}
+
+void ClockFormatDate(const struct ClockTime *ct, char *buffer)
 {
     char *p = buffer;
 
@@ -97,12 +109,6 @@ void ClockFormat(const struct ClockTime *ct, char *buffer)
     p = putDigits(p, ct->ct_Month, 2);
     *p++ = '/';
     p = putDigits(p, ct->ct_Year, 4);
-    *p++ = ' ';
-    p = putDigits(p, ct->ct_Hour, 2);
-    *p++ = ':';
-    p = putDigits(p, ct->ct_Min, 2);
-    *p++ = ':';
-    p = putDigits(p, ct->ct_Sec, 2);
     *p   = '\0';
 }
 

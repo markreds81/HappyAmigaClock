@@ -22,7 +22,8 @@ int AppMain(void)
     struct RenderContext   render;
     struct ClockTime       current;
     struct ClockTime       previous;
-    char                   text[CLOCK_STRING_LEN];
+    char                   timeText[CLOCK_TIME_LEN];
+    char                   dateText[CLOCK_DATE_LEN];
     ULONG                  winSig;
     ULONG                  timerSig;
     BOOL                   done;
@@ -37,12 +38,18 @@ int AppMain(void)
         return 20;
     }
 
-    RenderInit(&render, win);
+    if (!RenderInit(&render, win))
+    {
+        closeTimer(&timer);
+        CloseAppWindow(win);
+        return 20;
+    }
 
     /* Paint the initial state right away, don't wait for the first tick */
     ClockNow(&previous);
-    ClockFormat(&previous, text);
-    RenderText(&render, text);
+    ClockFormatTime(&previous, timeText);
+    ClockFormatDate(&previous, dateText);
+    RenderClock(&render, timeText, dateText);
 
     winSig   = 1L << win->UserPort->mp_SigBit;
     timerSig = 1L << timer.tc_Port->mp_SigBit;
@@ -63,8 +70,9 @@ int AppMain(void)
             ClockNow(&current);
             if (ClockChanged(&current, &previous))
             {
-                ClockFormat(&current, text);
-                RenderText(&render, text);
+                ClockFormatTime(&current, timeText);
+                ClockFormatDate(&current, dateText);
+                RenderClock(&render, timeText, dateText);
                 previous = current;
             }
 
@@ -82,6 +90,7 @@ int AppMain(void)
             done = TRUE;
     }
 
+    RenderExit(&render);
     closeTimer(&timer);
     CloseAppWindow(win);
 
