@@ -1,5 +1,5 @@
-#ifndef HAC_COMPILER_H
-#define HAC_COMPILER_H
+#ifndef HAC_AMIGA_H
+#define HAC_AMIGA_H
 
 #include <exec/types.h>
 #include <exec/libraries.h>

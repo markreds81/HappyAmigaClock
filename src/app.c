@@ -1,4 +1,4 @@
-#include "compiler.h"
+#include "amiga.h"
 #include "app.h"
 #include "window.h"
 #include "timer.h"

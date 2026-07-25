@@ -1,7 +1,7 @@
 #ifndef CLOCK_H
 #define CLOCK_H
 
-#include "compiler.h"
+#include "amiga.h"
 
 /*
  * Plain calendar/time snapshot. Deliberately independent from any Exec/DOS

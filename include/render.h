@@ -1,7 +1,7 @@
 #ifndef RENDER_H
 #define RENDER_H
 
-#include "compiler.h"
+#include "amiga.h"
 #include "clock.h"
 
 /*

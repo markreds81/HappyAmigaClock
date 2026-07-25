@@ -1,7 +1,7 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include "compiler.h"
+#include "amiga.h"
 
 /* Opens a borderless window covering the whole active Workbench screen. */
 struct Window *OpenAppWindow(void);

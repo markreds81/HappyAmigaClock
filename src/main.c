@@ -1,4 +1,4 @@
-#include "compiler.h"
+#include "amiga.h"
 #include "app.h"
 
 struct IntuitionBase *IntuitionBase;
@@ -11,7 +11,7 @@ struct GfxBase *GfxBase;
    opened explicitly here. */
 
 /* Library versions requested match the KS 1.3 ROM libraries exactly
-   (Intuition 33, Graphics 33) - see include/compiler.h. */
+   (Intuition 33, Graphics 33) - see include/amiga.h. */
 #define LIB_VERSION 33L
 
 int main(void)

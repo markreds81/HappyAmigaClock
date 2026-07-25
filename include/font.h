@@ -1,7 +1,7 @@
 #ifndef FONT_H
 #define FONT_H
 
-#include "compiler.h"
+#include "amiga.h"
 
 BOOL FontInit(void);
 void FontExit(void);

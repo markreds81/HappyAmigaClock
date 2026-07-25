@@ -1,7 +1,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include "compiler.h"
+#include "amiga.h"
 
 /*
  * Encapsulates every timer.device resource (message port and I/O request)
