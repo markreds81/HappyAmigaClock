@@ -1,88 +1,47 @@
-# to generate assembler listing with LTO, add to LDFLAGS: -Wa,-adhln=$@.listing,--listing-rhs-width=200
-# for better annotations add -dA -dP
-# to generate assembler source with LTO, add to LDFLAGS: -save-temps=cwd
+FS_UAE ?= /Applications/FS-UAE.app/Contents/MacOS/fs-uae
+FS_UAE_CONFIG ?= $(CURDIR)/emulator/HappyAmigaClock.fs-uae
+BOOT_ADF ?= $(CURDIR)/emulator/HappyAmigaClock-dev.adf
+VBCC_ROOT ?= /Users/mark/Developer/Amiga/vbcc
+NDK_INC ?= /Users/mark/Developer/Amiga/sdk/NDK_3.9/Include/include_h
 
-ifdef OS
-	WINDOWS = 1
-	SHELL = cmd.exe
-endif
+export VBCC := $(VBCC_ROOT)
+export PATH := $(VBCC_ROOT)/bin:$(PATH)
+export NDK_INC
 
-subdirs := $(wildcard */)
-VPATH = $(subdirs)
-cpp_sources := $(wildcard *.cpp) $(wildcard $(addsuffix *.cpp,$(subdirs)))
-cpp_objects := $(addprefix obj/,$(patsubst %.cpp,%.o,$(notdir $(cpp_sources))))
-c_sources := $(wildcard *.c) $(wildcard $(addsuffix *.c,$(subdirs)))
-c_objects := $(addprefix obj/,$(patsubst %.c,%.o,$(notdir $(c_sources))))
-s_sources := support/gcc8_a_support.s support/depacker_doynax.s
-s_objects := $(addprefix obj/,$(patsubst %.s,%.o,$(notdir $(s_sources))))
-vasm_sources := $(wildcard *.asm) $(wildcard $(addsuffix *.asm, $(subdirs)))
-vasm_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(vasm_sources))))
-objects := $(cpp_objects) $(c_objects) $(s_objects) $(vasm_objects)
+DIST_DIR ?= $(CURDIR)/dist
+ICON_SOURCE := assets/HappyAmigaClock.info
+ICON_TARGET := $(DIST_DIR)/HappyAmigaClock.info
 
-# https://stackoverflow.com/questions/4036191/sources-from-subdirectories-in-makefile/4038459
-# http://www.microhowto.info/howto/automatically_generate_makefile_dependencies.html
+.PHONY: all build clean run check-vbcc install-icon
 
-program = out/a
-OUT = $(program)
-CC = m68k-amiga-elf-gcc
-AS = m68k-amiga-elf-as
-VASM = vasmm68k_mot
+all: build
 
-ifdef WINDOWS
-	SDKDIR = $(abspath $(dir $(shell where $(CC)))..\m68k-amiga-elf\sys-include)
-else
-	SDKDIR = $(abspath $(dir $(shell which $(CC)))../m68k-amiga-elf/sys-include)
-endif
+check-vbcc:
+	@test -x "$(VBCC_ROOT)/bin/vc" || \
+		(echo "Errore: vc non trovato in $(VBCC_ROOT)/bin"; exit 1)
+	@test -x "$(VBCC_ROOT)/bin/vlink" || \
+		(echo "Errore: vlink non trovato in $(VBCC_ROOT)/bin"; exit 1)
+	@test -x "$(VBCC_ROOT)/bin/vasmm68k_mot" || \
+		(echo "Errore: vasmm68k_mot non trovato in $(VBCC_ROOT)/bin"; exit 1)
 
-CCFLAGS   = -g -MP -MMD -m68000 -Ofast -nostdlib -Wextra -Wno-unused-function -Wno-volatile-register-var -fomit-frame-pointer -fno-tree-loop-distribution -flto -fwhole-program -fno-exceptions -ffunction-sections -fdata-sections
-CPPFLAGS  = $(CCFLAGS) -fno-rtti -fcoroutines -fno-use-cxa-atexit
-ASFLAGS   = -mcpu=68000 -g --register-prefix-optional -I$(SDKDIR)
-LDFLAGS   = -Wl,--emit-relocs,--gc-sections,-Ttext=0,-Map=$(OUT).map
-VASMFLAGS = -m68000 -Felf -opt-fconst -nowarn=62 -dwarf=3 -quiet -x -I. -I$(SDKDIR)
+build: check-vbcc
+	$(MAKE) -f Makefile.vbcc
+	$(MAKE) install-icon
 
-.PHONY: all clean dirs
+install-icon: $(ICON_TARGET)
 
-dirs:
-ifdef WINDOWS
-	@if not exist obj mkdir obj
-	@if not exist out mkdir out
-else
-	@mkdir -p obj out
-endif
+$(ICON_TARGET): $(ICON_SOURCE) | $(DIST_DIR)
+	cp "$<" "$@"
 
-all: dirs $(OUT).exe
-
-$(OUT).exe: dirs $(OUT).elf
-	$(info Elf2Hunk $(program).exe)
-	@elf2hunk $(OUT).elf $(OUT).exe
-
-$(OUT).elf: dirs $(objects)
-	$(info Linking $(program).elf)
-	@$(CC) $(CCFLAGS) $(LDFLAGS) $(objects) -o $@
-	@m68k-amiga-elf-objdump --disassemble --no-show-raw-ins --visualize-jumps -S $@ >$(OUT).s
+$(DIST_DIR):
+	mkdir -p "$@"
 
 clean:
-	$(info Cleaning...)
-ifdef WINDOWS
-	@del /q obj\* out\*
-else
-	@$(RM) obj/* out/*
-endif
+	$(MAKE) -f Makefile.vbcc clean
+	rm -f "$(ICON_TARGET)"
 
--include $(objects:.o=.d)
-
-$(cpp_objects) : obj/%.o : %.cpp
-	$(info Compiling $<)
-	@$(CC) $(CPPFLAGS) -c -o $@ $(CURDIR)/$<
-
-$(c_objects) : obj/%.o : %.c
-	$(info Compiling $<)
-	@$(CC) $(CCFLAGS) -c -o $@ $(CURDIR)/$<
-
-$(s_objects): obj/%.o : %.s
-	$(info Assembling $<)
-	@$(AS) $(ASFLAGS) --MD $(@D)/$*.d -o $@ $(CURDIR)/$<
-
-$(vasm_objects): obj/%.o : %.asm
-	$(info Assembling $<)
-	@$(VASM) $(VASMFLAGS) -dependall=make -depfile $(@D)/$*.d -o $@ $(CURDIR)/$<
+run: build
+	"$(FS_UAE)" "$(FS_UAE_CONFIG)" \
+		--floppy-drive-0="$(BOOT_ADF)" \
+		--hard-drive-1="$(CURDIR)/dist" \
+		--hard-drive-1-label=HAC

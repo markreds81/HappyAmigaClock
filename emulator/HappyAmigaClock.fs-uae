@@ -1,0 +1,7 @@
+[fs-uae]
+amiga_model = A500
+chip_memory = 512
+slow_memory = 512
+fast_memory = 0
+fullscreen = 0
+;hard_drive_0 = /percorso/locale/Workbench13
