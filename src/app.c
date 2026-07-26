@@ -4,6 +4,7 @@
 #include "timer.h"
 #include "clock.h"
 #include "render.h"
+#include "audio.h"
 
 /*
  * Timer tick period: ~200 ms rather than a full second. Polling this
@@ -35,6 +36,7 @@ int AppMain(const struct AppConfig *config)
     struct Window         *win;
     struct TimerContext    timer;
     struct RenderContext   render;
+    struct AudioContext    audio;
     struct ClockTime       current;
     struct ClockTime       previous;
     char                   timeText[CLOCK_TIME_LEN];
@@ -44,6 +46,7 @@ int AppMain(const struct AppConfig *config)
     ULONG                  paletteStartMinute;
     UWORD                  pointerIdleTicks;
     BOOL                   pointerHidden;
+    BOOL                   audioReady;
     BOOL                   done;
 
     win = OpenAppWindow();
@@ -62,6 +65,8 @@ int AppMain(const struct AppConfig *config)
         CloseAppWindow(win);
         return 20;
     }
+
+    audioReady = config->ac_Chime && AudioInit(&audio);
 
     /* Paint the initial state right away, don't wait for the first tick */
     ClockNow(&previous);
@@ -109,6 +114,10 @@ int AppMain(const struct AppConfig *config)
             ClockNow(&current);
             if (ClockChanged(&current, &previous))
             {
+                if (audioReady && current.ct_Min == 0 &&
+                    current.ct_Hour != previous.ct_Hour)
+                    AudioPlayChime(&audio);
+
                 ClockFormatTime(&current, timeText, config->ac_ShowSeconds);
                 ClockFormatDate(&current, dateText);
                 RenderClock(&render, timeText, dateText,
@@ -147,6 +156,8 @@ int AppMain(const struct AppConfig *config)
             done = TRUE;
     }
 
+    if (audioReady)
+        AudioExit(&audio);
     RenderExit(&render);
     closeTimer(&timer);
     CloseAppWindow(win);

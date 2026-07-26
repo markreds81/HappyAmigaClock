@@ -11,8 +11,10 @@ export NDK_INC
 DIST_DIR ?= $(CURDIR)/dist
 ICON_SOURCE := assets/HappyAmigaClock.info
 ICON_TARGET := $(DIST_DIR)/HappyAmigaClock.info
+LHA_TARGET := $(DIST_DIR)/HappyAmigaClock.lha
+LHA_TOOL := tools/create_lha.py
 
-.PHONY: all build clean run check-vbcc install-icon
+.PHONY: all build clean run check-vbcc install-icon lha
 
 all: build
 
@@ -38,7 +40,12 @@ $(DIST_DIR):
 
 clean:
 	$(MAKE) -f Makefile.vbcc clean
-	rm -f "$(ICON_TARGET)"
+	rm -f "$(ICON_TARGET)" "$(LHA_TARGET)"
+
+lha: build
+	python3 "$(LHA_TOOL)" "$(LHA_TARGET)" \
+		"$(DIST_DIR)/HappyAmigaClock" \
+		"$(ICON_TARGET)"
 
 run: build
 	"$(FS_UAE)" "$(FS_UAE_CONFIG)" \

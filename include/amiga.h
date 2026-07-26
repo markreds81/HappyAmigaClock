@@ -4,6 +4,7 @@
 #include <exec/types.h>
 #include <exec/libraries.h>
 #include <exec/io.h>
+#include <exec/memory.h>
 #include <exec/ports.h>
 
 #include <intuition/intuition.h>
@@ -13,6 +14,7 @@
 #include <graphics/text.h>
 
 #include <devices/timer.h>
+#include <devices/audio.h>
 #include <devices/inputevent.h>
 
 #include <dos/dos.h>

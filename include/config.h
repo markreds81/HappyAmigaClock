@@ -9,13 +9,14 @@ struct AppConfig
     ULONG ac_InvertMinutes;
     BOOL ac_StartDark;
     BOOL ac_DateAlwaysVisible;
+    BOOL ac_Chime;
 };
 
 /*
  * Reads SECONDS=YES|NO, INVERT=<minutes>, MODE=LIGHT|DARK and
- * DATEALWAYS=YES|NO using ReadArgs() from Shell or FindToolType() from
- * the program icon under Workbench. INVERT=0 disables palette
- * alternation and retains MODE.
+ * DATEALWAYS=YES|NO and CHIME=YES|NO using ReadArgs() from Shell or
+ * FindToolType() from the program icon under Workbench. INVERT=0
+ * disables palette alternation and retains MODE.
  */
 BOOL ConfigLoad(struct AppConfig *config, int argc, char **argv);
 

@@ -36,8 +36,9 @@ La versione può quindi essere interrogata con il comando AmigaDOS
 
 ## Configurazione
 
-Le opzioni `SECONDS`, `INVERT`, `MODE` e `DATEALWAYS` controllano il
-formato, l'alternanza dei colori e la visibilità della data.
+Le opzioni `SECONDS`, `INVERT`, `MODE`, `DATEALWAYS` e `CHIME`
+controllano il formato, l'alternanza dei colori, la visibilità della
+data e il segnale orario.
 
 | Valore | Risultato |
 | --- | --- |
@@ -71,13 +72,18 @@ scelta rimane invariata.
 
 Il valore predefinito è `DATEALWAYS=NO`.
 
+`CHIME=YES|NO` abilita o disabilita un breve segnale acustico a due note
+allo scoccare di ogni ora. Il suono viene generato dal programma e
+riprodotto tramite `audio.device`, senza richiedere file esterni. Il
+valore predefinito è `CHIME=NO`.
+
 ### Avvio dalla Shell
 
 Su AmigaOS 2.0 o successivo gli argomenti vengono analizzati con
 `ReadArgs()`:
 
 ```text
-HappyAmigaClock SECONDS=NO INVERT=60 MODE=DARK DATEALWAYS=YES
+HappyAmigaClock SECONDS=NO INVERT=60 MODE=DARK DATEALWAYS=YES CHIME=YES
 ```
 
 `ReadArgs()` non è disponibile su Kickstart 1.3. In quel caso il programma
@@ -93,6 +99,7 @@ SECONDS=NO
 INVERT=60
 MODE=DARK
 DATEALWAYS=YES
+CHIME=YES
 ```
 
 I ToolTypes vengono letti tramite `icon.library` e `FindToolType()`.
@@ -129,6 +136,15 @@ I file risultanti sono:
 dist/HappyAmigaClock
 dist/HappyAmigaClock.info
 ```
+
+Per creare un archivio di distribuzione contenente entrambi i file:
+
+```sh
+make lha
+```
+
+L'archivio risultante viene scritto in
+`dist/HappyAmigaClock.lha`.
 
 Per eliminare i prodotti della compilazione:
 

@@ -134,8 +134,9 @@ void ClockFormatDate(const struct ClockTime *ct, char *buffer)
 
 BOOL ClockChanged(const struct ClockTime *a, const struct ClockTime *b)
 {
-    /* DateStamp() has one-second granularity, so the seconds field alone
-       is enough to detect that a new second has begun - this also covers
-       minute/hour/day rollovers, since ct_Sec always changes with them. */
-    return (BOOL)(a->ct_Sec != b->ct_Sec);
+    /* Comparing the absolute minute as well as the seconds also handles
+       a long scheduling delay that happens to land on the same second
+       of a later minute. */
+    return (BOOL)(a->ct_AbsoluteMinute != b->ct_AbsoluteMinute ||
+                  a->ct_Sec != b->ct_Sec);
 }
