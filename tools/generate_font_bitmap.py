@@ -15,9 +15,9 @@ SCALE = 4
 
 # The time styles are used by hh:mm and hh:mm:ss; the date has its own style.
 SIZES = (
-    ("compact", 52, 88, "time"),
+    ("compact", 56, 88, "time"),
     ("large", 44, 72, "time"),
-    ("small", 16, 18, "date"),
+    ("small", 18, 18, "date"),
 )
 
 
