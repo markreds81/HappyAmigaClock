@@ -35,7 +35,8 @@ void ClockNow(struct ClockTime *ct);
  * 'buffer' must be at least CLOCK_TIME_LEN bytes long.
  * Does not depend on DateToStr() or any sprintf-style formatter.
  */
-void ClockFormatTime(const struct ClockTime *ct, char *buffer);
+void ClockFormatTime(const struct ClockTime *ct, char *buffer,
+                     BOOL showSeconds);
 
 /*
  * Formats 'ct' as "dd/mm/yyyy" into 'buffer'.

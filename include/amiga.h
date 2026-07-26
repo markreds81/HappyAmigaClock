@@ -16,12 +16,18 @@
 #include <devices/inputevent.h>
 
 #include <dos/dos.h>
+#include <dos/rdargs.h>
+
+#include <workbench/startup.h>
+#include <workbench/workbench.h>
+#include <workbench/icon.h>
 
 #include <clib/exec_protos.h>
 #include <clib/intuition_protos.h>
 #include <clib/graphics_protos.h>
 #include <clib/dos_protos.h>
 #include <clib/alib_protos.h>
+#include <clib/icon_protos.h>
 
 #if defined(__SASC)
 
@@ -29,6 +35,7 @@
 #include <pragmas/intuition_pragmas.h>
 #include <pragmas/graphics_pragmas.h>
 #include <pragmas/dos_pragmas.h>
+#include <pragmas/icon_pragmas.h>
 
 #elif defined(__VBCC__) || defined(__GNUC__)
 
@@ -37,6 +44,7 @@
 #include <proto/graphics.h>
 #include <proto/dos.h>
 #include <proto/alib.h>
+#include <proto/icon.h>
 
 #else
 

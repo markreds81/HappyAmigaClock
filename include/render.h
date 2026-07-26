@@ -45,6 +45,7 @@ void RenderExit(struct RenderContext *rc);
  * font.h). Only the area occupied by the previous draw (if any) is
  * erased first.
  */
-void RenderClock(struct RenderContext *rc, const char *time, const char *date);
+void RenderClock(struct RenderContext *rc, const char *time, const char *date,
+                 BOOL showSeconds);
 
 #endif /* RENDER_H */

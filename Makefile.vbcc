@@ -10,7 +10,7 @@ OBJECTS := $(patsubst src/%.c,build/vbcc/%.o,$(SOURCES))
 
 CPPFLAGS := -Iinclude -I$(NDK_INC)
 CFLAGS := +kick13 -cpu=68000 -O2
-LDLIBS := -lamiga
+LDLIBS := $(VBCC)/targets/m68k-amigaos/lib/amiga.lib -lamiga
 
 .PHONY: all clean
 

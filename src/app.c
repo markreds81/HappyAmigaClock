@@ -15,7 +15,7 @@
 #define TICK_SECONDS 0L
 #define TICK_MICROS  200000UL
 
-int AppMain(void)
+int AppMain(const struct AppConfig *config)
 {
     struct Window         *win;
     struct TimerContext    timer;
@@ -47,9 +47,9 @@ int AppMain(void)
 
     /* Paint the initial state right away, don't wait for the first tick */
     ClockNow(&previous);
-    ClockFormatTime(&previous, timeText);
+    ClockFormatTime(&previous, timeText, config->ac_ShowSeconds);
     ClockFormatDate(&previous, dateText);
-    RenderClock(&render, timeText, dateText);
+    RenderClock(&render, timeText, dateText, config->ac_ShowSeconds);
 
     winSig   = 1L << win->UserPort->mp_SigBit;
     timerSig = 1L << timer.tc_Port->mp_SigBit;
@@ -70,9 +70,10 @@ int AppMain(void)
             ClockNow(&current);
             if (ClockChanged(&current, &previous))
             {
-                ClockFormatTime(&current, timeText);
+                ClockFormatTime(&current, timeText, config->ac_ShowSeconds);
                 ClockFormatDate(&current, dateText);
-                RenderClock(&render, timeText, dateText);
+                RenderClock(&render, timeText, dateText,
+                            config->ac_ShowSeconds);
                 previous = current;
             }
 

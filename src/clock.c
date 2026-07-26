@@ -88,15 +88,21 @@ static char *putDigits(char *dst, UWORD value, WORD digits)
     return dst;
 }
 
-void ClockFormatTime(const struct ClockTime *ct, char *buffer)
+void ClockFormatTime(const struct ClockTime *ct, char *buffer,
+                     BOOL showSeconds)
 {
     char *p = buffer;
 
     p = putDigits(p, ct->ct_Hour, 2);
-    *p++ = ':';
+    *p++ = (showSeconds || ((ct->ct_Sec & 1) == 0)) ? ':' : ' ';
     p = putDigits(p, ct->ct_Min, 2);
-    *p++ = ':';
-    p = putDigits(p, ct->ct_Sec, 2);
+
+    if (showSeconds)
+    {
+        *p++ = ':';
+        p = putDigits(p, ct->ct_Sec, 2);
+    }
+
     *p   = '\0';
 }
 

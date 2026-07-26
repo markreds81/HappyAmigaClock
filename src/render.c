@@ -3,6 +3,7 @@
 
 /* Time fills most of the screen height; date sits smaller below it. */
 #define TIME_HEIGHT_PIXELS 64
+#define COMPACT_TIME_HEIGHT_PIXELS 88
 #define DATE_HEIGHT_PIXELS 24
 #define LINE_GAP_PERCENT    4
 
@@ -66,11 +67,13 @@ void RenderExit(struct RenderContext *rc)
     FontExit();
 }
 
-void RenderClock(struct RenderContext *rc, const char *time, const char *date)
+void RenderClock(struct RenderContext *rc, const char *time, const char *date,
+                 BOOL showSeconds)
 {
     struct RastPort *rp = rc->rc_Window->RPort;
     WORD screenHeight = rc->rc_Window->Height;
-    WORD timeHeight = TIME_HEIGHT_PIXELS;
+    WORD timeHeight = showSeconds ? TIME_HEIGHT_PIXELS
+                                  : COMPACT_TIME_HEIGHT_PIXELS;
     WORD dateHeight = DATE_HEIGHT_PIXELS;
     WORD lineGap    = (screenHeight * LINE_GAP_PERCENT)    / 100;
     WORD timeWidth  = FontStringWidth(time, timeHeight);

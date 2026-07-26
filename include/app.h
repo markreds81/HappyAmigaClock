@@ -1,6 +1,8 @@
 #ifndef APP_H
 #define APP_H
 
-int AppMain(void);
+#include "config.h"
+
+int AppMain(const struct AppConfig *config);
 
 #endif /* APP_H */
