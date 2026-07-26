@@ -3,6 +3,8 @@
 Happy Amiga Clock è un orologio a schermo intero per Commodore Amiga,
 scritto in C usando direttamente le API di AmigaOS.
 
+Versione corrente: **1.0** (`26.07.2026`).
+
 Mostra l'ora e la data al centro dello schermo Workbench con un font
 monocromatico incorporato nell'eseguibile. Le cifre vengono trasferite
 tramite il blitter con `BltTemplate()`: non sono richiesti font installati
@@ -20,6 +22,15 @@ Caratteristiche principali:
 - uscita tramite il tasto Esc o, da Shell, con Ctrl+C;
 - bitmap del font conservate in CHIP RAM e accessibili direttamente al
   blitter.
+
+L'eseguibile contiene il tag standard:
+
+```text
+$VER: HappyAmigaClock 1.0 (26.07.2026)
+```
+
+La versione può quindi essere interrogata con il comando AmigaDOS
+`Version` sui sistemi che lo supportano.
 
 ## Configurazione
 

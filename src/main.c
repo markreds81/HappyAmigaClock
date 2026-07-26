@@ -1,10 +1,13 @@
 #include "amiga.h"
 #include "app.h"
 #include "config.h"
+#include "version.h"
 
 struct IntuitionBase *IntuitionBase;
 struct GfxBase *GfxBase;
 struct Library *IconBase;
+
+const char AppVersionTag[] = APP_VERSION_TAG;
 
 #define LIB_VERSION 33L
 
