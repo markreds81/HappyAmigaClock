@@ -309,12 +309,10 @@ void RenderDigitalFlipFrame(struct RenderContext *rc, const char *time,
         rc->rc_PrevLineY != y || rc->rc_PrevTimeHeight != height)
         return;
 
-    if (frame <= 1)
-        visibleRows = (height * 3) / 4;
-    else if (frame == 2)
-        visibleRows = height / 2;
+    if (frame <= RENDER_FLIP_HALF_FRAME)
+        visibleRows = height - (height * frame) / (RENDER_FLIP_HALF_FRAME * 2);
     else
-        visibleRows = (height * 3) / 4;
+        visibleRows = (height * (frame - 1)) / (RENDER_FLIP_HALF_FRAME * 2);
 
     clearTimeBuffer(rc);
 
@@ -326,8 +324,9 @@ void RenderDigitalFlipFrame(struct RenderContext *rc, const char *time,
             *newText >= '0' && *newText <= '9')
         {
             SetAPen(rp, 1);
-            FontDrawCharRows(rp, frame <= 2 ? *oldText : *newText, cx, 0,
-                             height, 0, visibleRows);
+            FontDrawCharRows(
+                rp, frame <= RENDER_FLIP_HALF_FRAME ? *oldText : *newText, cx,
+                0, height, 0, visibleRows);
 
             /* The bright centre seam sells the mechanical hinge effect. */
             Move(rp, cx, height / 2);

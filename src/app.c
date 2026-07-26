@@ -8,8 +8,7 @@
 
 #define TICK_SECONDS 0L
 #define TICK_MICROS 200000UL
-#define FLIP_TICK_MICROS 60000UL
-#define FLIP_LAST_FRAME 4
+#define FLIP_TICK_MICROS 40000UL
 #define POINTER_HIDE_MICROS 10000000UL
 
 static BOOL darkBackgroundFor(const struct ClockTime *time,
@@ -119,7 +118,7 @@ int AppMain(const struct AppConfig *config)
             if (flipActive)
             {
                 flipFrame++;
-                if (flipFrame < FLIP_LAST_FRAME)
+                if (flipFrame < RENDER_FLIP_LAST_FRAME)
                     RenderDigitalFlipFrame(
                         &render, timeText, config->ac_ShowSeconds,
                         darkBackgroundFor(&flipTarget, config,

@@ -4,6 +4,9 @@
 #include "amiga.h"
 #include "clock.h"
 
+#define RENDER_FLIP_HALF_FRAME 4
+#define RENDER_FLIP_LAST_FRAME 9
+
 /*
  * Tracks the screen area and text last used to draw the clock, so that
  * a redraw can (a) touch only the previous bounding rectangle instead of
@@ -69,7 +72,7 @@ void RenderDigitalClock(struct RenderContext *rc, const char *time,
 
 /*
  * Draws one intermediate frame of the optional split-flap transition.
- * frame is 1..3; the caller completes the transition with
+ * frame is 1..8; the caller completes the transition with
  * RenderDigitalClock(), which commits the new text to the context.
  */
 void RenderDigitalFlipFrame(struct RenderContext *rc, const char *time,
