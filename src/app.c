@@ -70,6 +70,7 @@ int AppMain(const struct AppConfig *config)
     ClockFormatDate(&previous, dateText);
     RenderClock(&render, timeText, dateText, config->ac_ShowSeconds,
                 darkBackgroundFor(&previous, config, paletteStartMinute));
+    RenderSetInfoVisible(&render, TRUE);
 
     winSig   = 1L << win->UserPort->mp_SigBit;
     timerSig = 1L << timer.tc_Port->mp_SigBit;
@@ -95,7 +96,10 @@ int AppMain(const struct AppConfig *config)
                 if (pointerIdleTicks >= POINTER_HIDE_TICKS)
                 {
                     if (WindowHidePointer(win))
+                    {
                         pointerHidden = TRUE;
+                        RenderSetInfoVisible(&render, FALSE);
+                    }
                     pointerIdleTicks = POINTER_HIDE_TICKS;
                 }
             }
@@ -130,6 +134,7 @@ int AppMain(const struct AppConfig *config)
                 {
                     WindowShowPointer(win);
                     pointerHidden = FALSE;
+                    RenderSetInfoVisible(&render, TRUE);
                 }
             }
         }

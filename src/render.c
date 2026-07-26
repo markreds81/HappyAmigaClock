@@ -1,17 +1,30 @@
 #include "render.h"
 #include "font.h"
+#include "version.h"
 
 /* Time fills most of the screen height; date sits smaller below it. */
 #define TIME_HEIGHT_PIXELS 64
 #define COMPACT_TIME_HEIGHT_PIXELS 88
 #define DATE_HEIGHT_PIXELS 24
 #define LINE_GAP_PERCENT    4
+#define INFO_BOTTOM_MARGIN  6
+
+static const char infoText[] = APP_NAME " " APP_VERSION_STRING;
 
 /* No string.h in this codebase; NUL-terminated copy, like strcpy(). */
 static void copyStr(char *dst, const char *src)
 {
     while ((*dst++ = *src++) != '\0')
         ;
+}
+
+static WORD textLength(const char *text)
+{
+    WORD length = 0;
+
+    while (*text++)
+        length++;
+    return length;
 }
 
 static void setRGB4Value(struct ViewPort *vp, WORD pen, UWORD rgb)
@@ -193,4 +206,29 @@ void RenderClock(struct RenderContext *rc, const char *time, const char *date,
     rc->rc_PrevTimeHeight = timeHeight;
     rc->rc_PrevDateHeight = dateHeight;
     rc->rc_HasPrev       = TRUE;
+}
+
+void RenderSetInfoVisible(struct RenderContext *rc, BOOL visible)
+{
+    struct RastPort *rp = rc->rc_Window->RPort;
+    struct TextFont *font = rp->Font;
+    WORD length = textLength(infoText);
+    WORD width = TextLength(rp, (STRPTR)infoText, length);
+    WORD x = (rc->rc_Window->Width - width) / 2;
+    WORD y = rc->rc_Window->Height - font->tf_YSize - INFO_BOTTOM_MARGIN;
+
+    WaitTOF();
+
+    if (visible)
+    {
+        SetAPen(rp, 1);
+        SetDrMd(rp, JAM1);
+        Move(rp, x, y + font->tf_Baseline);
+        Text(rp, (STRPTR)infoText, length);
+    }
+    else
+    {
+        SetAPen(rp, 0);
+        RectFill(rp, x, y, x + width - 1, y + font->tf_YSize - 1);
+    }
 }

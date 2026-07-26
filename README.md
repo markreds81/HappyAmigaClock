@@ -18,8 +18,9 @@ Caratteristiche principali:
 - separatore lampeggiante nel formato senza secondi;
 - inversione automatica bianco/nero ogni 12 ore;
 - puntatore del mouse nascosto dopo 10 secondi di inattività;
+- nome e versione mostrati in basso finché il puntatore è visibile;
 - aggiornamento dei soli caratteri modificati;
-- uscita tramite il tasto Esc o, da Shell, con Ctrl+C;
+- uscita con un click sinistro, tramite Esc o, da Shell, con Ctrl+C;
 - bitmap del font conservate in CHIP RAM e accessibili direttamente al
   blitter.
 

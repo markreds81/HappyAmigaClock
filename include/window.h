@@ -15,7 +15,7 @@ void WindowShowPointer(struct Window *win);
 
 /*
  * Drains and replies every pending IntuiMessage for 'win'.
- * Returns TRUE if the user asked to quit (ESC key), FALSE otherwise.
+ * Returns TRUE if the user asked to quit (ESC or left click), FALSE otherwise.
  * Sets 'mouseMoved' when at least one mouse movement was observed.
  */
 BOOL WindowProcessMessages(struct Window *win, BOOL *mouseMoved);

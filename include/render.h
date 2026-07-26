@@ -55,4 +55,7 @@ void RenderExit(struct RenderContext *rc);
 void RenderClock(struct RenderContext *rc, const char *time, const char *date,
                  BOOL showSeconds, BOOL darkBackground);
 
+/* Shows or erases the application name/version in the system font. */
+void RenderSetInfoVisible(struct RenderContext *rc, BOOL visible);
+
 #endif /* RENDER_H */

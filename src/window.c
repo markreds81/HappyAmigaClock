@@ -28,7 +28,7 @@ struct Window *OpenAppWindow(void)
     nw.DetailPen  = 0;
     nw.BlockPen   = 1;
 
-    nw.IDCMPFlags = IDCMP_RAWKEY | IDCMP_MOUSEMOVE;
+    nw.IDCMPFlags = IDCMP_RAWKEY | IDCMP_MOUSEMOVE | IDCMP_MOUSEBUTTONS;
 
     /* Borderless: no title bar, no gadgets, sized to cover the whole screen.
        (WFLG_BACKDROP is deliberately avoided: on WBENCHSCREEN it would place
@@ -108,6 +108,11 @@ BOOL WindowProcessMessages(struct Window *win, BOOL *mouseMoved)
         else if (msg->Class == IDCMP_MOUSEMOVE)
         {
             *mouseMoved = TRUE;
+        }
+        else if (msg->Class == IDCMP_MOUSEBUTTONS &&
+                 msg->Code == SELECTDOWN)
+        {
+            quit = TRUE;
         }
 
         ReplyMsg((struct Message *)msg);
