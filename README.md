@@ -229,6 +229,20 @@ Per compilare e avviare FS-UAE con la configurazione inclusa nel progetto:
 make run
 ```
 
+Per analizzare il codice C con Clang e trattare tutti gli avvisi come
+errori:
+
+```sh
+make lint
+```
+
+Per applicare automaticamente lo stile definito in `.clang-format` a
+tutti i sorgenti C e agli header:
+
+```sh
+make format
+```
+
 I percorsi di FS-UAE, del floppy di boot e della configurazione
 dell'emulatore possono essere sovrascritti tramite le variabili definite
 all'inizio del `Makefile`.

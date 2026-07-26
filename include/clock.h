@@ -10,13 +10,13 @@
  */
 struct ClockTime
 {
-    UWORD ct_Day;    /* 1..31   */
-    UWORD ct_Month;  /* 1..12   */
-    UWORD ct_Year;   /* e.g. 2026 */
-    UWORD ct_Hour;   /* 0..23   */
-    UWORD ct_Min;    /* 0..59   */
-    UWORD ct_Sec;    /* 0..59   */
-    UWORD ct_Weekday; /* 0=Sunday .. 6=Saturday */
+    UWORD ct_Day;            /* 1..31   */
+    UWORD ct_Month;          /* 1..12   */
+    UWORD ct_Year;           /* e.g. 2026 */
+    UWORD ct_Hour;           /* 0..23   */
+    UWORD ct_Min;            /* 0..59   */
+    UWORD ct_Sec;            /* 0..59   */
+    UWORD ct_Weekday;        /* 0=Sunday .. 6=Saturday */
     ULONG ct_AbsoluteMinute; /* minutes since 1 Jan 1978 */
 };
 

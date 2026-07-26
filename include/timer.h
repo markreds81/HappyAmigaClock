@@ -10,9 +10,9 @@
  */
 struct TimerContext
 {
-    struct MsgPort      *tc_Port;
-    struct timerequest  *tc_Request;
-    BOOL                 tc_Running; /* TRUE while a request is in flight */
+    struct MsgPort *tc_Port;
+    struct timerequest *tc_Request;
+    BOOL tc_Running; /* TRUE while a request is in flight */
 };
 
 /* Opens timer.device (UNIT_MICROHZ) and allocates its port/request.

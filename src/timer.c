@@ -2,16 +2,15 @@
 
 BOOL openTimer(struct TimerContext *tc)
 {
-    tc->tc_Port    = NULL;
+    tc->tc_Port = NULL;
     tc->tc_Request = NULL;
     tc->tc_Running = FALSE;
 
     tc->tc_Port = CreatePort(NULL, 0);
-    if (!tc->tc_Port)
-        return FALSE;
+    if (!tc->tc_Port) return FALSE;
 
-    tc->tc_Request = (struct timerequest *)
-        CreateExtIO(tc->tc_Port, sizeof(struct timerequest));
+    tc->tc_Request = (struct timerequest *)CreateExtIO(
+        tc->tc_Port, sizeof(struct timerequest));
     if (!tc->tc_Request)
     {
         DeletePort(tc->tc_Port);
@@ -61,8 +60,8 @@ void closeTimer(struct TimerContext *tc)
 void startTimer(struct TimerContext *tc, ULONG seconds, ULONG micros)
 {
     tc->tc_Request->tr_node.io_Command = TR_ADDREQUEST;
-    tc->tc_Request->tr_time.tv_secs    = seconds;
-    tc->tc_Request->tr_time.tv_micro   = micros;
+    tc->tc_Request->tr_time.tv_secs = seconds;
+    tc->tc_Request->tr_time.tv_micro = micros;
 
     SendIO((struct IORequest *)tc->tc_Request);
     tc->tc_Running = TRUE;
@@ -70,8 +69,7 @@ void startTimer(struct TimerContext *tc, ULONG seconds, ULONG micros)
 
 BOOL completeTimer(struct TimerContext *tc)
 {
-    if (!tc->tc_Running)
-        return FALSE;
+    if (!tc->tc_Running) return FALSE;
 
     /* The caller only gets here after Wait() reported the timer port's
        signal bit as set, so the request has already completed and this

@@ -3,8 +3,8 @@
 #include "version.h"
 
 /* Time stays centered; date is placed near the top edge. */
-#define DATE_TOP_PERCENT    6
-#define INFO_BOTTOM_MARGIN  6
+#define DATE_TOP_PERCENT 6
+#define INFO_BOTTOM_MARGIN 6
 
 static const char infoText[] = APP_NAME " " APP_VERSION_STRING;
 
@@ -36,8 +36,7 @@ static void setRGB4Value(struct ViewPort *vp, WORD pen, UWORD rgb)
 static void setClockPalette(struct RenderContext *rc, BOOL darkBackground)
 {
     if (!rc->rc_HasSavedPalette ||
-        (rc->rc_HasClockPalette &&
-         rc->rc_DarkBackground == darkBackground))
+        (rc->rc_HasClockPalette && rc->rc_DarkBackground == darkBackground))
         return;
 
     if (darkBackground)
@@ -61,8 +60,8 @@ static void setClockPalette(struct RenderContext *rc, BOOL darkBackground)
  * time/date formats are fixed-width). This is what keeps a per-second
  * redraw cheap: normally just the last digit or two actually changed.
  */
-static void redrawChangedChars(struct RastPort *rp, const char *prevText, const char *newText,
-                                WORD x, WORD y, WORD height)
+static void redrawChangedChars(struct RastPort *rp, const char *prevText,
+                               const char *newText, WORD x, WORD y, WORD height)
 {
     WORD cx = x;
 
@@ -88,30 +87,28 @@ static void redrawChangedChars(struct RastPort *rp, const char *prevText, const 
     }
 }
 
-BOOL RenderInit(struct RenderContext *rc, struct Window *win,
-                BOOL showSeconds, BOOL analog)
+BOOL RenderInit(struct RenderContext *rc, struct Window *win, BOOL showSeconds,
+                BOOL analog)
 {
     struct RastPort *rp = win->RPort;
 
-    rc->rc_Window      = win;
-    rc->rc_PrevX       = 0;
-    rc->rc_PrevY       = 0;
-    rc->rc_PrevWidth   = 0;
-    rc->rc_PrevHeight  = 0;
-    rc->rc_HasPrev     = FALSE;
-    rc->rc_ViewPort    = &win->WScreen->ViewPort;
+    rc->rc_Window = win;
+    rc->rc_PrevX = 0;
+    rc->rc_PrevY = 0;
+    rc->rc_PrevWidth = 0;
+    rc->rc_PrevHeight = 0;
+    rc->rc_HasPrev = FALSE;
+    rc->rc_ViewPort = &win->WScreen->ViewPort;
     rc->rc_HasSavedPalette = FALSE;
     rc->rc_HasClockPalette = FALSE;
     rc->rc_DateVisible = TRUE;
     rc->rc_FontReady = FALSE;
     rc->rc_AnalogHasPrev = FALSE;
 
-    if (rc->rc_ViewPort->ColorMap &&
-        rc->rc_ViewPort->ColorMap->Count >= 2 &&
+    if (rc->rc_ViewPort->ColorMap && rc->rc_ViewPort->ColorMap->Count >= 2 &&
         rc->rc_ViewPort->ColorMap->ColorTable)
     {
-        UWORD *colors =
-            (UWORD *)rc->rc_ViewPort->ColorMap->ColorTable;
+        UWORD *colors = (UWORD *)rc->rc_ViewPort->ColorMap->ColorTable;
 
         rc->rc_SavedColor0 = colors[0];
         rc->rc_SavedColor1 = colors[1];
@@ -122,8 +119,7 @@ BOOL RenderInit(struct RenderContext *rc, struct Window *win,
     SetAPen(rp, 0);
     RectFill(rp, 0, 0, win->Width - 1, win->Height - 1);
 
-    if (!analog)
-        rc->rc_FontReady = FontInit(showSeconds);
+    if (!analog) rc->rc_FontReady = FontInit(showSeconds);
 
     return analog || rc->rc_FontReady;
 }
@@ -136,36 +132,37 @@ void RenderExit(struct RenderContext *rc)
         setRGB4Value(rc->rc_ViewPort, 1, rc->rc_SavedColor1);
     }
 
-    if (rc->rc_FontReady)
-        FontExit();
+    if (rc->rc_FontReady) FontExit();
 }
 
-void RenderDigitalClock(struct RenderContext *rc, const char *time, const char *date,
-                        BOOL showSeconds, BOOL darkBackground)
+void RenderDigitalClock(struct RenderContext *rc, const char *time,
+                        const char *date, BOOL showSeconds, BOOL darkBackground)
 {
     struct RastPort *rp = rc->rc_Window->RPort;
     WORD screenHeight = rc->rc_Window->Height;
-    WORD timeHeight = showSeconds ? FONT_LARGE_HEIGHT
-                                  : FONT_COMPACT_HEIGHT;
+    WORD timeHeight = showSeconds ? FONT_LARGE_HEIGHT : FONT_COMPACT_HEIGHT;
     WORD dateHeight = FONT_SMALL_HEIGHT;
-    WORD timeWidth  = FontStringWidth(time, timeHeight);
-    WORD dateWidth  = FontStringWidth(date, dateHeight);
-    WORD timeX  = (rc->rc_Window->Width - timeWidth) / 2;
-    WORD timeY  = (screenHeight - timeHeight) / 2;
-    WORD dateX  = (rc->rc_Window->Width - dateWidth) / 2;
-    WORD dateY  = (screenHeight * DATE_TOP_PERCENT) / 100;
+    WORD timeWidth = FontStringWidth(time, timeHeight);
+    WORD dateWidth = FontStringWidth(date, dateHeight);
+    WORD timeX = (rc->rc_Window->Width - timeWidth) / 2;
+    WORD timeY = (screenHeight - timeHeight) / 2;
+    WORD dateX = (rc->rc_Window->Width - dateWidth) / 2;
+    WORD dateY = (screenHeight * DATE_TOP_PERCENT) / 100;
     WORD blockX = (timeX < dateX) ? timeX : dateX;
     WORD blockY = (timeY < dateY) ? timeY : dateY;
     WORD blockRight = ((timeX + timeWidth) > (dateX + dateWidth))
-                    ? timeX + timeWidth : dateX + dateWidth;
+                          ? timeX + timeWidth
+                          : dateX + dateWidth;
     WORD blockBottom = ((timeY + timeHeight) > (dateY + dateHeight))
-                     ? timeY + timeHeight : dateY + dateHeight;
+                           ? timeY + timeHeight
+                           : dateY + dateHeight;
     WORD blockWidth = blockRight - blockX;
     WORD blockHeight = blockBottom - blockY;
-    BOOL sameLayout = rc->rc_HasPrev &&
-                       rc->rc_PrevTimeX == timeX && rc->rc_PrevDateX == dateX &&
-                       rc->rc_PrevLineY == timeY && rc->rc_PrevDateY == dateY &&
-                       rc->rc_PrevTimeHeight == timeHeight && rc->rc_PrevDateHeight == dateHeight;
+    BOOL sameLayout = rc->rc_HasPrev && rc->rc_PrevTimeX == timeX &&
+                      rc->rc_PrevDateX == dateX && rc->rc_PrevLineY == timeY &&
+                      rc->rc_PrevDateY == dateY &&
+                      rc->rc_PrevTimeHeight == timeHeight &&
+                      rc->rc_PrevDateHeight == dateHeight;
 
     setClockPalette(rc, darkBackground);
 
@@ -207,17 +204,17 @@ void RenderDigitalClock(struct RenderContext *rc, const char *time, const char *
     copyStr(rc->rc_PrevTime, time);
     copyStr(rc->rc_PrevDate, date);
 
-    rc->rc_PrevX         = blockX;
-    rc->rc_PrevY         = blockY;
-    rc->rc_PrevWidth     = blockWidth;
-    rc->rc_PrevHeight    = blockHeight;
-    rc->rc_PrevTimeX     = timeX;
-    rc->rc_PrevDateX     = dateX;
-    rc->rc_PrevLineY     = timeY;
-    rc->rc_PrevDateY     = dateY;
+    rc->rc_PrevX = blockX;
+    rc->rc_PrevY = blockY;
+    rc->rc_PrevWidth = blockWidth;
+    rc->rc_PrevHeight = blockHeight;
+    rc->rc_PrevTimeX = timeX;
+    rc->rc_PrevDateX = dateX;
+    rc->rc_PrevLineY = timeY;
+    rc->rc_PrevDateY = dateY;
     rc->rc_PrevTimeHeight = timeHeight;
     rc->rc_PrevDateHeight = dateHeight;
-    rc->rc_HasPrev       = TRUE;
+    rc->rc_HasPrev = TRUE;
 }
 
 /*
@@ -225,24 +222,18 @@ void RenderDigitalClock(struct RenderContext *rc, const char *time, const char *
  * other three quadrants around this small table avoids floating point
  * maths (and its sizeable runtime library) on a 68000.
  */
-static const UWORD sineQuarter[16] =
-{
-       0,  107,  213,  316,  416,  512,  602,  685,
-     761,  828,  887,  934,  974, 1002, 1018, 1024
-};
+static const UWORD sineQuarter[16] = {0,   107,  213,  316, 416, 512,
+                                      602, 685,  761,  828, 887, 934,
+                                      974, 1002, 1018, 1024};
 
 static LONG sine60(WORD tick)
 {
     tick %= 60;
-    if (tick < 0)
-        tick += 60;
+    if (tick < 0) tick += 60;
 
-    if (tick <= 15)
-        return (LONG)sineQuarter[tick];
-    if (tick <= 30)
-        return (LONG)sineQuarter[30 - tick];
-    if (tick <= 45)
-        return -(LONG)sineQuarter[tick - 30];
+    if (tick <= 15) return (LONG)sineQuarter[tick];
+    if (tick <= 30) return (LONG)sineQuarter[30 - tick];
+    if (tick <= 45) return -(LONG)sineQuarter[tick - 30];
     return -(LONG)sineQuarter[60 - tick];
 }
 
@@ -260,15 +251,14 @@ static WORD clockY(WORD centre, WORD radius, WORD tick)
  * Draws a hand as parallel one-pixel lines.  Offsetting on the minor axis
  * gives a visually even stroke without relying on newer graphics calls.
  */
-static void drawThickLine(struct RastPort *rp, WORD x1, WORD y1,
-                          WORD x2, WORD y2, WORD width, WORD pixelAspectX)
+static void drawThickLine(struct RastPort *rp, WORD x1, WORD y1, WORD x2,
+                          WORD y2, WORD width, WORD pixelAspectX)
 {
     WORD first = -(width / 2);
     WORD last = width / 2;
     WORD offset;
 
-    if ((x2 - x1 < 0 ? x1 - x2 : x2 - x1) >
-        (y2 - y1 < 0 ? y1 - y2 : y2 - y1))
+    if ((x2 - x1 < 0 ? x1 - x2 : x2 - x1) > (y2 - y1 < 0 ? y1 - y2 : y2 - y1))
     {
         for (offset = first; offset <= last; offset++)
         {
@@ -309,9 +299,8 @@ static void drawCentreDisc(struct RastPort *rp, WORD x, WORD y, WORD radius,
 }
 
 static void drawAnalogIndex(struct RastPort *rp, WORD centreX, WORD centreY,
-                            WORD outerX, WORD outerY,
-                            WORD innerX, WORD innerY, WORD tick,
-                            WORD pixelAspectX)
+                            WORD outerX, WORD outerY, WORD innerX, WORD innerY,
+                            WORD tick, WORD pixelAspectX)
 {
     WORD x1 = clockX(centreX, innerX, tick);
     WORD y1 = clockY(centreY, innerY, tick);
@@ -320,8 +309,7 @@ static void drawAnalogIndex(struct RastPort *rp, WORD centreX, WORD centreY,
 
     if ((tick % 15) == 0)
     {
-        WORD tangentX =
-            (WORD)(sine60(tick + 15) / 340L) * pixelAspectX;
+        WORD tangentX = (WORD)(sine60(tick + 15) / 340L) * pixelAspectX;
         WORD tangentY = (WORD)(sine60(tick) / 340L);
 
         Move(rp, x1 - tangentX, y1 - tangentY);
@@ -336,15 +324,14 @@ static void drawAnalogIndex(struct RastPort *rp, WORD centreX, WORD centreY,
 }
 
 static void drawAnalogIndices(struct RastPort *rp, WORD centreX, WORD centreY,
-                              WORD outerX, WORD outerY,
-                              WORD innerX, WORD innerY,
-                              WORD pixelAspectX)
+                              WORD outerX, WORD outerY, WORD innerX,
+                              WORD innerY, WORD pixelAspectX)
 {
     WORD tick;
 
     for (tick = 0; tick < 60; tick += 5)
-        drawAnalogIndex(rp, centreX, centreY, outerX, outerY,
-                        innerX, innerY, tick, pixelAspectX);
+        drawAnalogIndex(rp, centreX, centreY, outerX, outerY, innerX, innerY,
+                        tick, pixelAspectX);
 }
 
 static void drawHourHand(struct RastPort *rp, WORD centreX, WORD centreY,
@@ -353,8 +340,7 @@ static void drawHourHand(struct RastPort *rp, WORD centreX, WORD centreY,
 {
     drawThickLine(rp, centreX, centreY,
                   clockX(centreX, (radiusX * 47) / 100, tick),
-                  clockY(centreY, (radiusY * 47) / 100, tick), 5,
-                  pixelAspectX);
+                  clockY(centreY, (radiusY * 47) / 100, tick), 5, pixelAspectX);
 }
 
 static void drawMinuteHand(struct RastPort *rp, WORD centreX, WORD centreY,
@@ -363,8 +349,7 @@ static void drawMinuteHand(struct RastPort *rp, WORD centreX, WORD centreY,
 {
     drawThickLine(rp, centreX, centreY,
                   clockX(centreX, (radiusX * 72) / 100, tick),
-                  clockY(centreY, (radiusY * 72) / 100, tick), 3,
-                  pixelAspectX);
+                  clockY(centreY, (radiusY * 72) / 100, tick), 3, pixelAspectX);
 }
 
 static void drawSecondHand(struct RastPort *rp, WORD centreX, WORD centreY,
@@ -391,15 +376,13 @@ void RenderAnalogClock(struct RenderContext *rc, const struct ClockTime *time,
     WORD innerX;
     WORD innerY;
     WORD minuteTick = time->ct_Min;
-    WORD hourTick = (WORD)((time->ct_Hour % 12) * 5 +
-                          time->ct_Min / 12);
+    WORD hourTick = (WORD)((time->ct_Hour % 12) * 5 + time->ct_Min / 12);
     BOOL hourChanged;
     BOOL minuteChanged;
     BOOL secondCrossedHour;
     BOOL secondCrossedMinute;
 
-    if (radiusY < 24)
-        radiusY = 24;
+    if (radiusY < 24) radiusY = 24;
 
     /*
      * A non-interlaced high-resolution Amiga pixel is roughly half as
@@ -408,23 +391,22 @@ void RenderAnalogClock(struct RenderContext *rc, const struct ClockTime *time,
      * bitmap geometry.
      */
     radiusX = radiusY * pixelAspectX;
-    if (radiusX > width / 2 - 8)
-        radiusX = width / 2 - 8;
+    if (radiusX > width / 2 - 8) radiusX = width / 2 - 8;
 
     outerX = radiusX;
     outerY = radiusY;
     innerX = (radiusX * 82) / 100;
     innerY = (radiusY * 82) / 100;
-    hourChanged = !rc->rc_AnalogHasPrev ||
-                  rc->rc_PrevAnalogHourTick != (UWORD)hourTick;
+    hourChanged =
+        !rc->rc_AnalogHasPrev || rc->rc_PrevAnalogHourTick != (UWORD)hourTick;
     minuteChanged = !rc->rc_AnalogHasPrev ||
                     rc->rc_PrevAnalogMinuteTick != (UWORD)minuteTick;
-    secondCrossedHour = rc->rc_AnalogHasPrev && showSeconds &&
-                        rc->rc_PrevAnalogSecondTick ==
-                        rc->rc_PrevAnalogHourTick;
-    secondCrossedMinute = rc->rc_AnalogHasPrev && showSeconds &&
-                          rc->rc_PrevAnalogSecondTick ==
-                          rc->rc_PrevAnalogMinuteTick;
+    secondCrossedHour =
+        rc->rc_AnalogHasPrev && showSeconds &&
+        rc->rc_PrevAnalogSecondTick == rc->rc_PrevAnalogHourTick;
+    secondCrossedMinute =
+        rc->rc_AnalogHasPrev && showSeconds &&
+        rc->rc_PrevAnalogSecondTick == rc->rc_PrevAnalogMinuteTick;
 
     setClockPalette(rc, darkBackground);
     WaitTOF();
@@ -454,15 +436,13 @@ void RenderAnalogClock(struct RenderContext *rc, const struct ClockTime *time,
 
     SetAPen(rp, 1);
     if (!rc->rc_AnalogHasPrev)
-        drawAnalogIndices(rp, centreX, centreY, outerX, outerY,
-                          innerX, innerY, pixelAspectX);
-    else if (showSeconds &&
-             (rc->rc_PrevAnalogSecondTick % 5) == 0)
+        drawAnalogIndices(rp, centreX, centreY, outerX, outerY, innerX, innerY,
+                          pixelAspectX);
+    else if (showSeconds && (rc->rc_PrevAnalogSecondTick % 5) == 0)
     {
         /* Only the long second hand can reach an hour index. */
-        drawAnalogIndex(rp, centreX, centreY, outerX, outerY,
-                        innerX, innerY, rc->rc_PrevAnalogSecondTick,
-                        pixelAspectX);
+        drawAnalogIndex(rp, centreX, centreY, outerX, outerY, innerX, innerY,
+                        rc->rc_PrevAnalogSecondTick, pixelAspectX);
     }
 
     /*
@@ -470,11 +450,11 @@ void RenderAnalogClock(struct RenderContext *rc, const struct ClockTime *time,
      * pixels, but repairs the rare overlap erased by a moving hand.
      */
     if (hourChanged || secondCrossedHour)
-        drawHourHand(rp, centreX, centreY, radiusX, radiusY,
-                     hourTick, pixelAspectX);
+        drawHourHand(rp, centreX, centreY, radiusX, radiusY, hourTick,
+                     pixelAspectX);
     if (minuteChanged || secondCrossedMinute)
-        drawMinuteHand(rp, centreX, centreY, radiusX, radiusY,
-                       minuteTick, pixelAspectX);
+        drawMinuteHand(rp, centreX, centreY, radiusX, radiusY, minuteTick,
+                       pixelAspectX);
     if (showSeconds)
         drawSecondHand(rp, centreX, centreY, radiusX, radiusY, time->ct_Sec);
     drawCentreDisc(rp, centreX, centreY, radiusY / 12, pixelAspectX);
@@ -515,8 +495,7 @@ void RenderSetDateVisible(struct RenderContext *rc, BOOL visible)
     struct RastPort *rp = rc->rc_Window->RPort;
     WORD width;
 
-    if (!rc->rc_HasPrev || rc->rc_DateVisible == visible)
-        return;
+    if (!rc->rc_HasPrev || rc->rc_DateVisible == visible) return;
 
     width = FontStringWidth(rc->rc_PrevDate, rc->rc_PrevDateHeight);
     WaitTOF();
@@ -524,8 +503,8 @@ void RenderSetDateVisible(struct RenderContext *rc, BOOL visible)
     if (visible)
     {
         SetAPen(rp, 1);
-        FontDrawString(rp, rc->rc_PrevDate, rc->rc_PrevDateX,
-                       rc->rc_PrevDateY, rc->rc_PrevDateHeight);
+        FontDrawString(rp, rc->rc_PrevDate, rc->rc_PrevDateX, rc->rc_PrevDateY,
+                       rc->rc_PrevDateHeight);
     }
     else
     {

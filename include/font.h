@@ -9,22 +9,22 @@
  */
 #define FONT_ROW_BYTES(width) ((((width) + 31) / 32) * 4)
 
-#define FONT_COMPACT_WIDTH    56
-#define FONT_COMPACT_HEIGHT   88
-#define FONT_COMPACT_ADVANCE  62
+#define FONT_COMPACT_WIDTH 56
+#define FONT_COMPACT_HEIGHT 88
+#define FONT_COMPACT_ADVANCE 62
 #define FONT_COMPACT_ROW_BYTES FONT_ROW_BYTES(FONT_COMPACT_WIDTH)
 
-#define FONT_LARGE_WIDTH      44
-#define FONT_LARGE_HEIGHT     72
-#define FONT_LARGE_ADVANCE    48
-#define FONT_LARGE_ROW_BYTES  FONT_ROW_BYTES(FONT_LARGE_WIDTH)
+#define FONT_LARGE_WIDTH 44
+#define FONT_LARGE_HEIGHT 72
+#define FONT_LARGE_ADVANCE 48
+#define FONT_LARGE_ROW_BYTES FONT_ROW_BYTES(FONT_LARGE_WIDTH)
 
-#define FONT_SMALL_WIDTH      18
-#define FONT_SMALL_HEIGHT     18
-#define FONT_SMALL_ADVANCE    12
+#define FONT_SMALL_WIDTH 18
+#define FONT_SMALL_HEIGHT 18
+#define FONT_SMALL_ADVANCE 12
 #define FONT_SMALL_LETTER_ADVANCE 18
-#define FONT_SMALL_SPACE_ADVANCE  8
-#define FONT_SMALL_ROW_BYTES  FONT_ROW_BYTES(FONT_SMALL_WIDTH)
+#define FONT_SMALL_SPACE_ADVANCE 8
+#define FONT_SMALL_ROW_BYTES FONT_ROW_BYTES(FONT_SMALL_WIDTH)
 
 BOOL FontInit(BOOL showSeconds);
 void FontExit(void);
@@ -49,6 +49,7 @@ void FontDrawChar(struct RastPort *rp, char c, WORD x, WORD y, WORD height);
 
 /* Draws 's' with its top-left corner at (x, y), 'height' pixels tall,
    using the RastPort's current foreground pen (set via SetAPen()). */
-void FontDrawString(struct RastPort *rp, const char *s, WORD x, WORD y, WORD height);
+void FontDrawString(struct RastPort *rp, const char *s, WORD x, WORD y,
+                    WORD height);
 
 #endif /* FONT_H */

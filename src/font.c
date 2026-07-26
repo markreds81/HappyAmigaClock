@@ -68,8 +68,7 @@ static WORD glyphIndex(char c, const char *glyphChars)
 
     while (*glyphChars)
     {
-        if (*glyphChars++ == c)
-            return index;
+        if (*glyphChars++ == c) return index;
         index++;
     }
 
@@ -115,8 +114,7 @@ WORD FontStringWidth(const char *s, WORD height)
         width = FONT_SMALL_WIDTH;
     }
 
-    if (len == 0)
-        return 0;
+    if (len == 0) return 0;
 
     while (p[1] != '\0')
     {
@@ -129,15 +127,11 @@ WORD FontStringWidth(const char *s, WORD height)
 
 WORD FontCharAdvance(char c, WORD height)
 {
-    if (isCompact(height))
-        return FONT_COMPACT_ADVANCE;
-    if (isLarge(height))
-        return FONT_LARGE_ADVANCE;
+    if (isCompact(height)) return FONT_COMPACT_ADVANCE;
+    if (isLarge(height)) return FONT_LARGE_ADVANCE;
 
-    if (c >= 'A' && c <= 'Z')
-        return FONT_SMALL_LETTER_ADVANCE;
-    if (c == ' ')
-        return FONT_SMALL_SPACE_ADVANCE;
+    if (c >= 'A' && c <= 'Z') return FONT_SMALL_LETTER_ADVANCE;
+    if (c == ' ') return FONT_SMALL_SPACE_ADVANCE;
 
     return FONT_SMALL_ADVANCE;
 }
@@ -147,31 +141,28 @@ void FontDrawChar(struct RastPort *rp, char c, WORD x, WORD y, WORD height)
     BOOL small = !isCompact(height) && !isLarge(height);
     WORD index = glyphIndex(c, small ? dateGlyphChars : timeGlyphChars);
 
-    if (index < 0)
-        return;
+    if (index < 0) return;
 
     SetDrMd(rp, JAM1);
     if (isCompact(height))
-        BltTemplate((PLANEPTR)((UBYTE *)chipTime +
-                               index * FONT_COMPACT_HEIGHT *
-                               FONT_COMPACT_ROW_BYTES),
-                    0, FONT_COMPACT_ROW_BYTES, rp, x, y,
-                    FONT_COMPACT_WIDTH, FONT_COMPACT_HEIGHT);
+        BltTemplate((PLANEPTR)((UBYTE *)chipTime + index * FONT_COMPACT_HEIGHT *
+                                                       FONT_COMPACT_ROW_BYTES),
+                    0, FONT_COMPACT_ROW_BYTES, rp, x, y, FONT_COMPACT_WIDTH,
+                    FONT_COMPACT_HEIGHT);
     else if (isLarge(height))
-        BltTemplate((PLANEPTR)((UBYTE *)chipTime +
-                               index * FONT_LARGE_HEIGHT *
-                               FONT_LARGE_ROW_BYTES),
-                    0, FONT_LARGE_ROW_BYTES,
-                    rp, x, y, FONT_LARGE_WIDTH, FONT_LARGE_HEIGHT);
+        BltTemplate((PLANEPTR)((UBYTE *)chipTime + index * FONT_LARGE_HEIGHT *
+                                                       FONT_LARGE_ROW_BYTES),
+                    0, FONT_LARGE_ROW_BYTES, rp, x, y, FONT_LARGE_WIDTH,
+                    FONT_LARGE_HEIGHT);
     else
-        BltTemplate((PLANEPTR)((UBYTE *)chipSmall +
-                               index * FONT_SMALL_HEIGHT *
-                               FONT_SMALL_ROW_BYTES),
-                    0, FONT_SMALL_ROW_BYTES,
-                    rp, x, y, FONT_SMALL_WIDTH, FONT_SMALL_HEIGHT);
+        BltTemplate((PLANEPTR)((UBYTE *)chipSmall + index * FONT_SMALL_HEIGHT *
+                                                        FONT_SMALL_ROW_BYTES),
+                    0, FONT_SMALL_ROW_BYTES, rp, x, y, FONT_SMALL_WIDTH,
+                    FONT_SMALL_HEIGHT);
 }
 
-void FontDrawString(struct RastPort *rp, const char *s, WORD x, WORD y, WORD height)
+void FontDrawString(struct RastPort *rp, const char *s, WORD x, WORD y,
+                    WORD height)
 {
     while (*s)
     {

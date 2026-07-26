@@ -11,9 +11,9 @@ struct AudioContext
 {
     struct MsgPort *au_Port;
     struct IOAudio *au_Request;
-    UBYTE          *au_Sample;
-    BOOL            au_Open;
-    BOOL            au_Running;
+    UBYTE *au_Sample;
+    BOOL au_Open;
+    BOOL au_Running;
 };
 
 /* Opens audio.device and prepares the generated chime. */

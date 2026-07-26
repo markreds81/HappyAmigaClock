@@ -19,16 +19,14 @@ struct Library *IconBase;
 
 static BOOL parseYesNo(STRPTR value, BOOL *result)
 {
-    if (MatchToolValue(value, "YES") ||
-        MatchToolValue(value, "ON") ||
+    if (MatchToolValue(value, "YES") || MatchToolValue(value, "ON") ||
         MatchToolValue(value, "TRUE"))
     {
         *result = TRUE;
         return TRUE;
     }
 
-    if (MatchToolValue(value, "NO") ||
-        MatchToolValue(value, "OFF") ||
+    if (MatchToolValue(value, "NO") || MatchToolValue(value, "OFF") ||
         MatchToolValue(value, "FALSE"))
     {
         *result = FALSE;
@@ -42,19 +40,16 @@ static BOOL parseMinutes(STRPTR value, ULONG *result)
 {
     ULONG number = 0;
 
-    if (!value || *value == '\0')
-        return FALSE;
+    if (!value || *value == '\0') return FALSE;
 
     while (*value)
     {
         ULONG digit;
 
-        if (*value < '0' || *value > '9')
-            return FALSE;
+        if (*value < '0' || *value > '9') return FALSE;
 
         digit = (ULONG)(*value++ - '0');
-        if (number > (MAX_INVERT_MINUTES - digit) / 10)
-            return FALSE;
+        if (number > (MAX_INVERT_MINUTES - digit) / 10) return FALSE;
         number = number * 10 + digit;
     }
 
@@ -88,19 +83,17 @@ static BOOL loadShellConfig(struct AppConfig *config)
      * ReadArgs() is a V36 call.  Under Kickstart 1.3 it must not be
      * invoked; the application simply retains its defaults.
      */
-    if (!DOSBase || DOSBase->dl_lib.lib_Version < READARGS_VERSION)
-        return TRUE;
+    if (!DOSBase || DOSBase->dl_lib.lib_Version < READARGS_VERSION) return TRUE;
 
     for (i = 0; i < ARG_COUNT; i++)
         options[i] = 0;
 
     parsed = ReadArgs(ARG_TEMPLATE, options, NULL);
-    if (!parsed)
-        return FALSE;
+    if (!parsed) return FALSE;
 
     if (options[ARG_SECONDS] != 0)
-        valid = parseYesNo((STRPTR)options[ARG_SECONDS],
-                           &config->ac_ShowSeconds);
+        valid =
+            parseYesNo((STRPTR)options[ARG_SECONDS], &config->ac_ShowSeconds);
 
     if (valid && options[ARG_INVERT] != 0)
     {
@@ -113,20 +106,17 @@ static BOOL loadShellConfig(struct AppConfig *config)
     }
 
     if (valid && options[ARG_MODE] != 0)
-        valid = parseMode((STRPTR)options[ARG_MODE],
-                          &config->ac_StartDark);
+        valid = parseMode((STRPTR)options[ARG_MODE], &config->ac_StartDark);
 
     if (valid && options[ARG_DATE_ALWAYS] != 0)
         valid = parseYesNo((STRPTR)options[ARG_DATE_ALWAYS],
                            &config->ac_DateAlwaysVisible);
 
     if (valid && options[ARG_CHIME] != 0)
-        valid = parseYesNo((STRPTR)options[ARG_CHIME],
-                           &config->ac_Chime);
+        valid = parseYesNo((STRPTR)options[ARG_CHIME], &config->ac_Chime);
 
     if (valid && options[ARG_ANALOG] != 0)
-        valid = parseYesNo((STRPTR)options[ARG_ANALOG],
-                           &config->ac_Analog);
+        valid = parseYesNo((STRPTR)options[ARG_ANALOG], &config->ac_Analog);
 
     FreeArgs(parsed);
     return valid;
@@ -141,8 +131,7 @@ static BOOL loadWorkbenchConfig(struct AppConfig *config,
     STRPTR value;
     BOOL valid = TRUE;
 
-    if (!startup || startup->sm_NumArgs < 1)
-        return TRUE;
+    if (!startup || startup->sm_NumArgs < 1) return TRUE;
 
     programArg = &startup->sm_ArgList[0];
     oldDir = CurrentDir(programArg->wa_Lock);
@@ -150,35 +139,31 @@ static BOOL loadWorkbenchConfig(struct AppConfig *config,
 
     if (icon)
     {
-        value = (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes,
-                                    "SECONDS");
-        if (value)
-            valid = parseYesNo(value, &config->ac_ShowSeconds);
+        value =
+            (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes, "SECONDS");
+        if (value) valid = parseYesNo(value, &config->ac_ShowSeconds);
 
-        value = (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes,
-                                    "INVERT");
+        value =
+            (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes, "INVERT");
         if (valid && value)
             valid = parseMinutes(value, &config->ac_InvertMinutes);
 
-        value = (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes,
-                                    "MODE");
-        if (valid && value)
-            valid = parseMode(value, &config->ac_StartDark);
+        value =
+            (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes, "MODE");
+        if (valid && value) valid = parseMode(value, &config->ac_StartDark);
 
         value = (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes,
-                                    "DATEALWAYS");
+                                     "DATEALWAYS");
         if (valid && value)
             valid = parseYesNo(value, &config->ac_DateAlwaysVisible);
 
-        value = (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes,
-                                    "CHIME");
-        if (valid && value)
-            valid = parseYesNo(value, &config->ac_Chime);
+        value =
+            (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes, "CHIME");
+        if (valid && value) valid = parseYesNo(value, &config->ac_Chime);
 
-        value = (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes,
-                                    "ANALOG");
-        if (valid && value)
-            valid = parseYesNo(value, &config->ac_Analog);
+        value =
+            (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes, "ANALOG");
+        if (valid && value) valid = parseYesNo(value, &config->ac_Analog);
         FreeDiskObject(icon);
     }
 
@@ -198,8 +183,7 @@ BOOL ConfigLoad(struct AppConfig *config, int argc, char **argv)
     config->ac_Analog = FALSE;
 
     IconBase = OpenLibrary("icon.library", ICON_LIB_VERSION);
-    if (!IconBase)
-        return FALSE;
+    if (!IconBase) return FALSE;
 
     if (argc == 0)
         loaded = loadWorkbenchConfig(config, (struct WBStartup *)argv);

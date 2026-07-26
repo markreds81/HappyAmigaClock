@@ -7,44 +7,42 @@
 #include "audio.h"
 
 #define TICK_SECONDS 0L
-#define TICK_MICROS  200000UL
+#define TICK_MICROS 200000UL
 #define POINTER_HIDE_TICKS 50
 
 static BOOL darkBackgroundFor(const struct ClockTime *time,
-                              const struct AppConfig *config,
-                              ULONG startMinute)
+                              const struct AppConfig *config, ULONG startMinute)
 {
     ULONG phase;
 
-    if (config->ac_InvertMinutes == 0)
-        return config->ac_StartDark;
+    if (config->ac_InvertMinutes == 0) return config->ac_StartDark;
 
-    phase = ((time->ct_AbsoluteMinute - startMinute) /
-             config->ac_InvertMinutes) & 1UL;
+    phase =
+        ((time->ct_AbsoluteMinute - startMinute) / config->ac_InvertMinutes) &
+        1UL;
     return (BOOL)(config->ac_StartDark ^ (phase != 0));
 }
 
 int AppMain(const struct AppConfig *config)
 {
-    struct Window         *win;
-    struct TimerContext    timer;
-    struct RenderContext   render;
-    struct AudioContext    audio;
-    struct ClockTime       current;
-    struct ClockTime       previous;
-    char                   timeText[CLOCK_TIME_LEN];
-    char                   dateText[CLOCK_DATE_LEN];
-    ULONG                  winSig;
-    ULONG                  timerSig;
-    ULONG                  paletteStartMinute;
-    UWORD                  pointerIdleTicks;
-    BOOL                   pointerHidden;
-    BOOL                   audioReady;
-    BOOL                   done;
+    struct Window *win;
+    struct TimerContext timer;
+    struct RenderContext render;
+    struct AudioContext audio;
+    struct ClockTime current;
+    struct ClockTime previous;
+    char timeText[CLOCK_TIME_LEN];
+    char dateText[CLOCK_DATE_LEN];
+    ULONG winSig;
+    ULONG timerSig;
+    ULONG paletteStartMinute;
+    UWORD pointerIdleTicks;
+    BOOL pointerHidden;
+    BOOL audioReady;
+    BOOL done;
 
     win = OpenAppWindow();
-    if (!win)
-        return 20;
+    if (!win) return 20;
 
     if (!openTimer(&timer))
     {
@@ -52,8 +50,7 @@ int AppMain(const struct AppConfig *config)
         return 20;
     }
 
-    if (!RenderInit(&render, win, config->ac_ShowSeconds,
-                    config->ac_Analog))
+    if (!RenderInit(&render, win, config->ac_ShowSeconds, config->ac_Analog))
     {
         closeTimer(&timer);
         CloseAppWindow(win);
@@ -68,16 +65,16 @@ int AppMain(const struct AppConfig *config)
     ClockFormatTime(&previous, timeText, config->ac_ShowSeconds);
     ClockFormatDate(&previous, dateText);
     if (config->ac_Analog)
-        RenderAnalogClock(&render, &previous, config->ac_ShowSeconds,
-                          darkBackgroundFor(&previous, config,
-                                            paletteStartMinute));
+        RenderAnalogClock(
+            &render, &previous, config->ac_ShowSeconds,
+            darkBackgroundFor(&previous, config, paletteStartMinute));
     else
-        RenderDigitalClock(&render, timeText, dateText, config->ac_ShowSeconds,
-                           darkBackgroundFor(&previous, config,
-                                             paletteStartMinute));
+        RenderDigitalClock(
+            &render, timeText, dateText, config->ac_ShowSeconds,
+            darkBackgroundFor(&previous, config, paletteStartMinute));
     RenderSetInfoVisible(&render, TRUE);
 
-    winSig   = 1L << win->UserPort->mp_SigBit;
+    winSig = 1L << win->UserPort->mp_SigBit;
     timerSig = 1L << timer.tc_Port->mp_SigBit;
 
     startTimer(&timer, TICK_SECONDS, TICK_MICROS);
@@ -102,8 +99,7 @@ int AppMain(const struct AppConfig *config)
                     {
                         pointerHidden = TRUE;
                         RenderSetInfoVisible(&render, FALSE);
-                        if (!config->ac_Analog &&
-                            !config->ac_DateAlwaysVisible)
+                        if (!config->ac_Analog && !config->ac_DateAlwaysVisible)
                             RenderSetDateVisible(&render, FALSE);
                     }
                     pointerIdleTicks = POINTER_HIDE_TICKS;
@@ -120,8 +116,7 @@ int AppMain(const struct AppConfig *config)
                 ClockFormatTime(&current, timeText, config->ac_ShowSeconds);
                 ClockFormatDate(&current, dateText);
                 if (config->ac_Analog)
-                    RenderAnalogClock(&render, &current,
-                                      config->ac_ShowSeconds,
+                    RenderAnalogClock(&render, &current, config->ac_ShowSeconds,
                                       darkBackgroundFor(&current, config,
                                                         paletteStartMinute));
                 else
@@ -140,8 +135,7 @@ int AppMain(const struct AppConfig *config)
         {
             BOOL mouseMoved;
 
-            if (WindowProcessMessages(win, &mouseMoved))
-                done = TRUE;
+            if (WindowProcessMessages(win, &mouseMoved)) done = TRUE;
 
             if (mouseMoved)
             {
@@ -151,19 +145,16 @@ int AppMain(const struct AppConfig *config)
                     WindowShowPointer(win);
                     pointerHidden = FALSE;
                     RenderSetInfoVisible(&render, TRUE);
-                    if (!config->ac_Analog &&
-                        !config->ac_DateAlwaysVisible)
+                    if (!config->ac_Analog && !config->ac_DateAlwaysVisible)
                         RenderSetDateVisible(&render, TRUE);
                 }
             }
         }
 
-        if (sig & SIGBREAKF_CTRL_C)
-            done = TRUE;
+        if (sig & SIGBREAKF_CTRL_C) done = TRUE;
     }
 
-    if (audioReady)
-        AudioExit(&audio);
+    if (audioReady) AudioExit(&audio);
     RenderExit(&render);
     closeTimer(&timer);
     CloseAppWindow(win);

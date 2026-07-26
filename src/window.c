@@ -21,12 +21,12 @@ struct Window *OpenAppWindow(void)
     /* ActiveScreen is valid as soon as Intuition is up, back to KS 1.3 */
     scr = IntuitionBase->ActiveScreen;
 
-    nw.LeftEdge   = 0;
-    nw.TopEdge    = 0;
-    nw.Width      = scr->Width;
-    nw.Height     = scr->Height;
-    nw.DetailPen  = 0;
-    nw.BlockPen   = 1;
+    nw.LeftEdge = 0;
+    nw.TopEdge = 0;
+    nw.Width = scr->Width;
+    nw.Height = scr->Height;
+    nw.DetailPen = 0;
+    nw.BlockPen = 1;
 
     nw.IDCMPFlags = IDCMP_RAWKEY | IDCMP_MOUSEMOVE | IDCMP_MOUSEBUTTONS;
 
@@ -36,23 +36,23 @@ struct Window *OpenAppWindow(void)
     nw.Flags = WFLG_BORDERLESS | WFLG_ACTIVATE | WFLG_REPORTMOUSE;
 
     nw.FirstGadget = NULL;
-    nw.CheckMark   = NULL;
-    nw.Title       = NULL;
+    nw.CheckMark = NULL;
+    nw.Title = NULL;
 
-    nw.Screen  = NULL;
-    nw.BitMap  = NULL;
+    nw.Screen = NULL;
+    nw.BitMap = NULL;
 
-    nw.MinWidth  = nw.Width;
+    nw.MinWidth = nw.Width;
     nw.MinHeight = nw.Height;
-    nw.MaxWidth  = nw.Width;
+    nw.MaxWidth = nw.Width;
     nw.MaxHeight = nw.Height;
 
     nw.Type = WBENCHSCREEN;
 
     win = OpenWindow(&nw);
     if (win)
-        blankPointer = (UWORD *)AllocMem(BLANK_POINTER_BYTES,
-                                         MEMF_CHIP | MEMF_CLEAR);
+        blankPointer =
+            (UWORD *)AllocMem(BLANK_POINTER_BYTES, MEMF_CHIP | MEMF_CLEAR);
 
     return win;
 }
@@ -102,15 +102,13 @@ BOOL WindowProcessMessages(struct Window *win, BOOL *mouseMoved)
             UWORD code = msg->Code;
 
             /* React on key-down only; ignore the key-up event (bit 0x80) */
-            if (!(code & IECODE_UP_PREFIX) && code == RAWKEY_ESC)
-                quit = TRUE;
+            if (!(code & IECODE_UP_PREFIX) && code == RAWKEY_ESC) quit = TRUE;
         }
         else if (msg->Class == IDCMP_MOUSEMOVE)
         {
             *mouseMoved = TRUE;
         }
-        else if (msg->Class == IDCMP_MOUSEBUTTONS &&
-                 msg->Code == SELECTDOWN)
+        else if (msg->Class == IDCMP_MOUSEBUTTONS && msg->Code == SELECTDOWN)
         {
             quit = TRUE;
         }

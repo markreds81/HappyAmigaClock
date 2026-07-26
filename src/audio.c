@@ -1,23 +1,21 @@
 #include "audio.h"
 
-#define SAMPLE_RATE       6000UL
-#define SAMPLE_PERIOD     591
-#define SAMPLE_VOLUME     42
-#define FIRST_NOTE_HZ     784UL
-#define SECOND_NOTE_HZ    988UL
+#define SAMPLE_RATE 6000UL
+#define SAMPLE_PERIOD 591
+#define SAMPLE_VOLUME 42
+#define FIRST_NOTE_HZ 784UL
+#define SECOND_NOTE_HZ 988UL
 #define FIRST_NOTE_SAMPLES 720
-#define PAUSE_SAMPLES      120
+#define PAUSE_SAMPLES 120
 #define SECOND_NOTE_SAMPLES 960
-#define CHIME_SAMPLES \
-    (FIRST_NOTE_SAMPLES + PAUSE_SAMPLES + SECOND_NOTE_SAMPLES)
-#define FADE_SAMPLES       60
+#define CHIME_SAMPLES (FIRST_NOTE_SAMPLES + PAUSE_SAMPLES + SECOND_NOTE_SAMPLES)
+#define FADE_SAMPLES 60
 
 static BYTE triangleSample(ULONG phase)
 {
     UWORD position = (UWORD)((phase >> 8) & 0xff);
 
-    if (position < 128)
-        return (BYTE)((WORD)position * 2 - 127);
+    if (position < 128) return (BYTE)((WORD)position * 2 - 127);
     return (BYTE)(383 - (WORD)position * 2);
 }
 
@@ -59,7 +57,7 @@ static void generateChime(UBYTE *sample)
 
 BOOL AudioInit(struct AudioContext *audio)
 {
-    static UBYTE channelPreference[4] = { 1, 2, 4, 8 };
+    static UBYTE channelPreference[4] = {1, 2, 4, 8};
 
     audio->au_Port = NULL;
     audio->au_Request = NULL;
@@ -68,11 +66,10 @@ BOOL AudioInit(struct AudioContext *audio)
     audio->au_Running = FALSE;
 
     audio->au_Port = CreatePort(NULL, 0);
-    if (!audio->au_Port)
-        return FALSE;
+    if (!audio->au_Port) return FALSE;
 
-    audio->au_Request = (struct IOAudio *)
-        CreateExtIO(audio->au_Port, sizeof(struct IOAudio));
+    audio->au_Request =
+        (struct IOAudio *)CreateExtIO(audio->au_Port, sizeof(struct IOAudio));
     if (!audio->au_Request)
     {
         AudioExit(audio);
@@ -93,8 +90,8 @@ BOOL AudioInit(struct AudioContext *audio)
     audio->au_Request->ioa_Request.io_Message.mn_Node.ln_Pri = 0;
     audio->au_Request->ioa_Request.io_Flags = ADIOF_NOWAIT;
 
-    if (OpenDevice((STRPTR)AUDIONAME, 0,
-                   (struct IORequest *)audio->au_Request, 0) != 0)
+    if (OpenDevice((STRPTR)AUDIONAME, 0, (struct IORequest *)audio->au_Request,
+                   0) != 0)
     {
         AudioExit(audio);
         return FALSE;
@@ -140,13 +137,11 @@ void AudioExit(struct AudioContext *audio)
 
 void AudioPlayChime(struct AudioContext *audio)
 {
-    if (!audio->au_Request)
-        return;
+    if (!audio->au_Request) return;
 
     if (audio->au_Running)
     {
-        if (!CheckIO((struct IORequest *)audio->au_Request))
-            return;
+        if (!CheckIO((struct IORequest *)audio->au_Request)) return;
 
         WaitIO((struct IORequest *)audio->au_Request);
         audio->au_Running = FALSE;

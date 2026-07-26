@@ -1,16 +1,13 @@
 #include "clock.h"
 
 /* Days per month, indexed [isLeapYear][month0] */
-static const UWORD daysInMonth[2][12] =
-{
-    { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }, /* common year */
-    { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }  /* leap year   */
+static const UWORD daysInMonth[2][12] = {
+    {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}, /* common year */
+    {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}  /* leap year   */
 };
 
-static const char weekdayNames[7][4] =
-{
-    "DOM", "LUN", "MAR", "MER", "GIO", "VEN", "SAB"
-};
+static const char weekdayNames[7][4] = {"DOM", "LUN", "MAR", "MER",
+                                        "GIO", "VEN", "SAB"};
 
 /* Gregorian leap year rule, implemented locally (no utility.library needed) */
 static BOOL isLeapYear(UWORD year)
@@ -37,8 +34,7 @@ static void daysToDate(LONG days, UWORD *day, UWORD *month, UWORD *year)
     {
         UWORD yearLength = isLeapYear(y) ? 366 : 365;
 
-        if (days < (LONG)yearLength)
-            break;
+        if (days < (LONG)yearLength) break;
 
         days -= yearLength;
         y++;
@@ -50,15 +46,14 @@ static void daysToDate(LONG days, UWORD *day, UWORD *month, UWORD *year)
     {
         UWORD monthLength = daysInMonth[leap][m];
 
-        if (days < (LONG)monthLength)
-            break;
+        if (days < (LONG)monthLength) break;
 
         days -= monthLength;
     }
 
-    *year  = y;
+    *year = y;
     *month = m + 1;
-    *day   = (UWORD)days + 1;
+    *day = (UWORD)days + 1;
 }
 
 void ClockNow(struct ClockTime *ct)
@@ -73,10 +68,9 @@ void ClockNow(struct ClockTime *ct)
     /* 1 January 1978 was a Sunday. */
     ct->ct_Weekday = (UWORD)(ds.ds_Days % 7);
     ct->ct_Hour = (UWORD)(ds.ds_Minute / 60);
-    ct->ct_Min  = (UWORD)(ds.ds_Minute % 60);
-    ct->ct_Sec  = (UWORD)(ds.ds_Tick / TICKS_PER_SECOND);
-    ct->ct_AbsoluteMinute =
-        (ULONG)ds.ds_Days * 1440UL + (ULONG)ds.ds_Minute;
+    ct->ct_Min = (UWORD)(ds.ds_Minute % 60);
+    ct->ct_Sec = (UWORD)(ds.ds_Tick / TICKS_PER_SECOND);
+    ct->ct_AbsoluteMinute = (ULONG)ds.ds_Days * 1440UL + (ULONG)ds.ds_Minute;
 }
 
 /* Writes 'value' as 'digits' decimal characters, zero-padded, no NUL */
@@ -97,8 +91,7 @@ static char *putDigits(char *dst, UWORD value, WORD digits)
     return dst;
 }
 
-void ClockFormatTime(const struct ClockTime *ct, char *buffer,
-                     BOOL showSeconds)
+void ClockFormatTime(const struct ClockTime *ct, char *buffer, BOOL showSeconds)
 {
     char *p = buffer;
 
@@ -112,7 +105,7 @@ void ClockFormatTime(const struct ClockTime *ct, char *buffer,
         p = putDigits(p, ct->ct_Sec, 2);
     }
 
-    *p   = '\0';
+    *p = '\0';
 }
 
 void ClockFormatDate(const struct ClockTime *ct, char *buffer)
@@ -129,7 +122,7 @@ void ClockFormatDate(const struct ClockTime *ct, char *buffer)
     p = putDigits(p, ct->ct_Month, 2);
     *p++ = '/';
     p = putDigits(p, ct->ct_Year, 4);
-    *p   = '\0';
+    *p = '\0';
 }
 
 BOOL ClockChanged(const struct ClockTime *a, const struct ClockTime *b)
