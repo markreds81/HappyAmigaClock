@@ -4,16 +4,6 @@
  * Three native one-bit sizes, drawn by the Amiga blitter in one operation.
  * There is deliberately no run-by-run drawing and no runtime scaling.
  */
-#define COMPACT_W       52
-#define COMPACT_H       88
-#define COMPACT_ADVANCE 62
-#define LARGE_W       36
-#define LARGE_H       64
-#define LARGE_ADVANCE 40
-#define SMALL_W       16
-#define SMALL_H       24
-#define SMALL_ADVANCE 18
-
 #include "font_bitmap.inc"
 
 #define COMPACT_BYTES ((ULONG)sizeof(glyph_compact))
@@ -83,12 +73,12 @@ static WORD glyphIndex(char c)
 
 static BOOL isCompact(WORD height)
 {
-    return height >= COMPACT_H;
+    return height >= FONT_COMPACT_HEIGHT;
 }
 
 static BOOL isLarge(WORD height)
 {
-    return height >= LARGE_H && !isCompact(height);
+    return height >= FONT_LARGE_HEIGHT && !isCompact(height);
 }
 
 static WORD textStrLen(const char *s)
@@ -108,18 +98,18 @@ WORD FontStringWidth(const char *s, WORD height)
 
     if (isCompact(height))
     {
-        width = COMPACT_W;
-        advance = COMPACT_ADVANCE;
+        width = FONT_COMPACT_WIDTH;
+        advance = FONT_COMPACT_ADVANCE;
     }
     else if (isLarge(height))
     {
-        width = LARGE_W;
-        advance = LARGE_ADVANCE;
+        width = FONT_LARGE_WIDTH;
+        advance = FONT_LARGE_ADVANCE;
     }
     else
     {
-        width = SMALL_W;
-        advance = SMALL_ADVANCE;
+        width = FONT_SMALL_WIDTH;
+        advance = FONT_SMALL_ADVANCE;
     }
 
     if (len == 0)
@@ -130,10 +120,10 @@ WORD FontStringWidth(const char *s, WORD height)
 WORD FontCharAdvance(WORD height)
 {
     if (isCompact(height))
-        return COMPACT_ADVANCE;
+        return FONT_COMPACT_ADVANCE;
     if (isLarge(height))
-        return LARGE_ADVANCE;
-    return SMALL_ADVANCE;
+        return FONT_LARGE_ADVANCE;
+    return FONT_SMALL_ADVANCE;
 }
 
 void FontDrawChar(struct RastPort *rp, char c, WORD x, WORD y, WORD height)
@@ -146,16 +136,22 @@ void FontDrawChar(struct RastPort *rp, char c, WORD x, WORD y, WORD height)
     SetDrMd(rp, JAM1);
     if (isCompact(height))
         BltTemplate((PLANEPTR)((UBYTE *)chipTime +
-                               index * COMPACT_H * 8),
-                    0, 8, rp, x, y, COMPACT_W, COMPACT_H);
+                               index * FONT_COMPACT_HEIGHT *
+                               FONT_COMPACT_ROW_BYTES),
+                    0, FONT_COMPACT_ROW_BYTES, rp, x, y,
+                    FONT_COMPACT_WIDTH, FONT_COMPACT_HEIGHT);
     else if (isLarge(height))
-        BltTemplate((PLANEPTR)((UBYTE *)chipTime + index * LARGE_H * 8),
-                    0, 8,
-                    rp, x, y, LARGE_W, LARGE_H);
+        BltTemplate((PLANEPTR)((UBYTE *)chipTime +
+                               index * FONT_LARGE_HEIGHT *
+                               FONT_LARGE_ROW_BYTES),
+                    0, FONT_LARGE_ROW_BYTES,
+                    rp, x, y, FONT_LARGE_WIDTH, FONT_LARGE_HEIGHT);
     else
-        BltTemplate((PLANEPTR)((UBYTE *)chipSmall + index * SMALL_H * 4),
-                    0, 4,
-                    rp, x, y, SMALL_W, SMALL_H);
+        BltTemplate((PLANEPTR)((UBYTE *)chipSmall +
+                               index * FONT_SMALL_HEIGHT *
+                               FONT_SMALL_ROW_BYTES),
+                    0, FONT_SMALL_ROW_BYTES,
+                    rp, x, y, FONT_SMALL_WIDTH, FONT_SMALL_HEIGHT);
 }
 
 void FontDrawString(struct RastPort *rp, const char *s, WORD x, WORD y, WORD height)

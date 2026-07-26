@@ -3,6 +3,27 @@
 
 #include "amiga.h"
 
+/*
+ * Native bitmap metrics. Keep these dimensions in sync with SIZES in
+ * tools/generate_font_bitmap.py when regenerating font_bitmap.inc.
+ */
+#define FONT_ROW_BYTES(width) ((((width) + 31) / 32) * 4)
+
+#define FONT_COMPACT_WIDTH    52
+#define FONT_COMPACT_HEIGHT   88
+#define FONT_COMPACT_ADVANCE  62
+#define FONT_COMPACT_ROW_BYTES FONT_ROW_BYTES(FONT_COMPACT_WIDTH)
+
+#define FONT_LARGE_WIDTH      44
+#define FONT_LARGE_HEIGHT     72
+#define FONT_LARGE_ADVANCE    48
+#define FONT_LARGE_ROW_BYTES  FONT_ROW_BYTES(FONT_LARGE_WIDTH)
+
+#define FONT_SMALL_WIDTH      16
+#define FONT_SMALL_HEIGHT     18
+#define FONT_SMALL_ADVANCE    14
+#define FONT_SMALL_ROW_BYTES  FONT_ROW_BYTES(FONT_SMALL_WIDTH)
+
 BOOL FontInit(BOOL showSeconds);
 void FontExit(void);
 

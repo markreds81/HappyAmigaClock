@@ -166,36 +166,35 @@ Il generatore conserva le proporzioni originali del glifo: la larghezza
 della cella non stira il carattere, ma stabilisce lo spazio disponibile
 per centrarlo.
 
-### 2. Aggiornare le costanti del renderer
+### 2. Aggiornare le metriche centralizzate
 
-Riportare le stesse larghezze e altezze in `src/font.c` e scegliere
+Riportare le stesse larghezze e altezze in `include/font.h` e scegliere
 l'avanzamento desiderato:
 
 ```c
-#define COMPACT_W       52
-#define COMPACT_H       88
-#define COMPACT_ADVANCE 62
+#define FONT_ROW_BYTES(width) ((((width) + 31) / 32) * 4)
 
-#define LARGE_W         36
-#define LARGE_H         64
-#define LARGE_ADVANCE   40
+#define FONT_COMPACT_WIDTH    52
+#define FONT_COMPACT_HEIGHT   88
+#define FONT_COMPACT_ADVANCE  62
 
-#define SMALL_W         16
-#define SMALL_H         24
-#define SMALL_ADVANCE   18
+#define FONT_LARGE_WIDTH      36
+#define FONT_LARGE_HEIGHT     64
+#define FONT_LARGE_ADVANCE    40
+
+#define FONT_SMALL_WIDTH      16
+#define FONT_SMALL_HEIGHT     24
+#define FONT_SMALL_ADVANCE    18
 ```
 
-Aggiornare inoltre in `src/render.c` le altezze usate per selezionare le
-tre serie:
+`font.c` e `render.c` condividono queste definizioni; non è necessario
+modificare altre costanti nel codice C. `FONT_ROW_BYTES()` calcola
+automaticamente il numero di byte occupati da una riga, arrotondato a
+gruppi di 32 bit:
 
-```c
-#define TIME_HEIGHT_PIXELS         64
-#define COMPACT_TIME_HEIGHT_PIXELS 88
-#define DATE_HEIGHT_PIXELS         24
+```text
+((larghezza + 31) / 32) × 4
 ```
-
-Questi valori devono corrispondere rispettivamente a `LARGE_H`,
-`COMPACT_H` e `SMALL_H`.
 
 ### 3. Controllare la larghezza complessiva
 
@@ -219,9 +218,8 @@ le cifre verranno tagliate ai bordi.
 ### 4. Rigenerare le bitmap
 
 La rigenerazione richiede Python 3, [Pillow](https://python-pillow.org/) e
-il file TrueType Roboto Light. Il percorso del font è definito dalla
-costante `FONT` all'inizio del generatore e può essere adattato al proprio
-sistema.
+uno o più font TTF, OTF oppure TTC. Il generatore permette di scegliere
+separatamente il font dell'orario e quello della data:
 
 Eseguire:
 
@@ -229,6 +227,34 @@ Eseguire:
 python3 tools/generate_font_bitmap.py
 make clean
 make
+```
+
+Per usare stili differenti:
+
+```sh
+python3 tools/generate_font_bitmap.py \
+  --time-font /percorso/RobotoCondensed_Bold.ttf \
+  --date-font /percorso/Roboto_Regular.ttf
+```
+
+Con un file TTC contenente più varianti, `--time-face` e `--date-face`
+selezionano l'indice della face desiderata:
+
+```sh
+python3 tools/generate_font_bitmap.py \
+  --time-font /percorso/Helvetica.ttc --time-face 2 \
+  --date-font /percorso/Helvetica.ttc --date-face 0
+```
+
+Le opzioni `--time-threshold` e `--date-threshold`, comprese tra 0 e 255,
+regolano indipendentemente la conversione in monocromatico. Un valore più
+basso tende a produrre tratti più pieni; uno più alto tratti più sottili.
+Il valore predefinito è 112 per entrambi.
+
+L'elenco completo delle opzioni è disponibile con:
+
+```sh
+python3 tools/generate_font_bitmap.py --help
 ```
 
 Il generatore riscrive `src/font_bitmap.inc`, che contiene le maschere
@@ -257,5 +283,7 @@ I moduli principali sono:
 ## Licenza
 
 Il codice del progetto è distribuito secondo i termini contenuti nel file
-[LICENSE](LICENSE). Le bitmap incorporate sono generate da Roboto Light,
-Copyright 2011 Google Inc., distribuito con licenza Apache 2.0.
+[LICENSE](LICENSE). Le bitmap incluse per impostazione predefinita sono
+generate da Roboto Light, Copyright 2011 Google Inc., distribuito con
+licenza Apache 2.0. Chi rigenera le bitmap con altri font deve verificarne
+la relativa licenza.

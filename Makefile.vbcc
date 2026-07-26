@@ -6,6 +6,7 @@ TARGET := dist/HappyAmigaClock
 
 SOURCES := $(sort $(shell find src -type f -name '*.c'))
 HEADERS := $(sort $(shell find include -type f -name '*.h'))
+FONT_BITMAP := src/font_bitmap.inc
 OBJECTS := $(patsubst src/%.c,build/vbcc/%.o,$(SOURCES))
 
 CPPFLAGS := -Iinclude -I$(NDK_INC)
@@ -23,6 +24,8 @@ $(TARGET): $(OBJECTS)
 build/vbcc/%.o: src/%.c $(HEADERS)
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
+build/vbcc/font.o: $(FONT_BITMAP)
 
 clean:
 	rm -rf build/vbcc
