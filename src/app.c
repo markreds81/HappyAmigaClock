@@ -59,7 +59,8 @@ int AppMain(const struct AppConfig *config)
         return 20;
     }
 
-    if (!RenderInit(&render, win, config->ac_ShowSeconds))
+    if (!RenderInit(&render, win, config->ac_ShowSeconds,
+                    config->ac_Analog))
     {
         closeTimer(&timer);
         CloseAppWindow(win);
@@ -73,8 +74,14 @@ int AppMain(const struct AppConfig *config)
     paletteStartMinute = previous.ct_AbsoluteMinute;
     ClockFormatTime(&previous, timeText, config->ac_ShowSeconds);
     ClockFormatDate(&previous, dateText);
-    RenderClock(&render, timeText, dateText, config->ac_ShowSeconds,
-                darkBackgroundFor(&previous, config, paletteStartMinute));
+    if (config->ac_Analog)
+        RenderAnalogClock(&render, &previous, config->ac_ShowSeconds,
+                          darkBackgroundFor(&previous, config,
+                                            paletteStartMinute));
+    else
+        RenderClock(&render, timeText, dateText, config->ac_ShowSeconds,
+                    darkBackgroundFor(&previous, config,
+                                      paletteStartMinute));
     RenderSetInfoVisible(&render, TRUE);
 
     winSig   = 1L << win->UserPort->mp_SigBit;
@@ -104,7 +111,8 @@ int AppMain(const struct AppConfig *config)
                     {
                         pointerHidden = TRUE;
                         RenderSetInfoVisible(&render, FALSE);
-                        if (!config->ac_DateAlwaysVisible)
+                        if (!config->ac_Analog &&
+                            !config->ac_DateAlwaysVisible)
                             RenderSetDateVisible(&render, FALSE);
                     }
                     pointerIdleTicks = POINTER_HIDE_TICKS;
@@ -120,10 +128,16 @@ int AppMain(const struct AppConfig *config)
 
                 ClockFormatTime(&current, timeText, config->ac_ShowSeconds);
                 ClockFormatDate(&current, dateText);
-                RenderClock(&render, timeText, dateText,
-                            config->ac_ShowSeconds,
-                            darkBackgroundFor(&current, config,
-                                              paletteStartMinute));
+                if (config->ac_Analog)
+                    RenderAnalogClock(&render, &current,
+                                      config->ac_ShowSeconds,
+                                      darkBackgroundFor(&current, config,
+                                                        paletteStartMinute));
+                else
+                    RenderClock(&render, timeText, dateText,
+                                config->ac_ShowSeconds,
+                                darkBackgroundFor(&current, config,
+                                                  paletteStartMinute));
                 previous = current;
             }
 
@@ -146,7 +160,8 @@ int AppMain(const struct AppConfig *config)
                     WindowShowPointer(win);
                     pointerHidden = FALSE;
                     RenderSetInfoVisible(&render, TRUE);
-                    if (!config->ac_DateAlwaysVisible)
+                    if (!config->ac_Analog &&
+                        !config->ac_DateAlwaysVisible)
                         RenderSetDateVisible(&render, TRUE);
                 }
             }

@@ -3,13 +3,14 @@
 extern struct Library *IconBase;
 extern struct DosLibrary *DOSBase;
 
-#define ARG_TEMPLATE "SECONDS/K,INVERT/K/N,MODE/K,DATEALWAYS/K,CHIME/K"
+#define ARG_TEMPLATE "SECONDS/K,INVERT/K/N,MODE/K,DATEALWAYS/K,CHIME/K,ANALOG/K"
 #define ARG_SECONDS 0
 #define ARG_INVERT 1
 #define ARG_MODE 2
 #define ARG_DATE_ALWAYS 3
 #define ARG_CHIME 4
-#define ARG_COUNT 5
+#define ARG_ANALOG 5
+#define ARG_COUNT 6
 #define READARGS_VERSION 36
 #define DEFAULT_INVERT_MINUTES 720UL
 #define MAX_INVERT_MINUTES 65535UL
@@ -121,6 +122,10 @@ static BOOL loadShellConfig(struct AppConfig *config)
         valid = parseYesNo((STRPTR)options[ARG_CHIME],
                            &config->ac_Chime);
 
+    if (valid && options[ARG_ANALOG] != 0)
+        valid = parseYesNo((STRPTR)options[ARG_ANALOG],
+                           &config->ac_Analog);
+
     FreeArgs(parsed);
     return valid;
 }
@@ -167,6 +172,11 @@ static BOOL loadWorkbenchConfig(struct AppConfig *config,
                                     "CHIME");
         if (valid && value)
             valid = parseYesNo(value, &config->ac_Chime);
+
+        value = (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes,
+                                    "ANALOG");
+        if (valid && value)
+            valid = parseYesNo(value, &config->ac_Analog);
         FreeDiskObject(icon);
     }
 
@@ -181,6 +191,7 @@ BOOL ConfigLoad(struct AppConfig *config, int argc, char **argv)
     config->ac_StartDark = FALSE;
     config->ac_DateAlwaysVisible = FALSE;
     config->ac_Chime = FALSE;
+    config->ac_Analog = FALSE;
 
     if (argc == 0)
         return loadWorkbenchConfig(config, (struct WBStartup *)argv);

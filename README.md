@@ -15,6 +15,7 @@ Caratteristiche principali:
 - compatibilità con Kickstart 1.3;
 - avvio da Shell oppure tramite icona Workbench;
 - visualizzazione opzionale dei secondi;
+- modalità analogica a tutto schermo;
 - giorno della settimana abbreviato sulla riga della data;
 - separatore lampeggiante nel formato senza secondi;
 - inversione automatica bianco/nero ogni 12 ore;
@@ -36,7 +37,7 @@ La versione può quindi essere interrogata con il comando AmigaDOS
 
 ## Configurazione
 
-Le opzioni `SECONDS`, `INVERT`, `MODE`, `DATEALWAYS` e `CHIME`
+Le opzioni `SECONDS`, `INVERT`, `MODE`, `DATEALWAYS`, `CHIME` e `ANALOG`
 controllano il formato, l'alternanza dei colori, la visibilità della
 data e il segnale orario.
 
@@ -77,13 +78,24 @@ allo scoccare di ogni ora. Il suono viene generato dal programma e
 riprodotto tramite `audio.device`, senza richiedere file esterni. Il
 valore predefinito è `CHIME=NO`.
 
+`ANALOG=YES|NO` sceglie il tipo di quadrante:
+
+| Valore | Risultato |
+| --- | --- |
+| `ANALOG=NO` | Mostra l'orologio digitale e la data |
+| `ANALOG=YES` | Mostra il quadrante analogico a tutto schermo |
+
+In modalità analogica `SECONDS=YES` mostra la lancetta dei secondi,
+mentre `SECONDS=NO` la nasconde. La data non viene sovrapposta al
+quadrante. Il valore predefinito è `ANALOG=NO`.
+
 ### Avvio dalla Shell
 
 Su AmigaOS 2.0 o successivo gli argomenti vengono analizzati con
 `ReadArgs()`:
 
 ```text
-HappyAmigaClock SECONDS=NO INVERT=60 MODE=DARK DATEALWAYS=YES CHIME=YES
+HappyAmigaClock ANALOG=YES SECONDS=YES INVERT=60 MODE=DARK CHIME=YES
 ```
 
 `ReadArgs()` non è disponibile su Kickstart 1.3. In quel caso il programma
@@ -100,6 +112,7 @@ INVERT=60
 MODE=DARK
 DATEALWAYS=YES
 CHIME=YES
+ANALOG=YES
 ```
 
 I ToolTypes vengono letti tramite `icon.library` e `FindToolType()`.

@@ -36,13 +36,18 @@ struct RenderContext
     BOOL              rc_DarkBackground;
     BOOL              rc_HasClockPalette;
     BOOL              rc_DateVisible;
+    BOOL              rc_FontReady;
+    BOOL              rc_AnalogHasPrev;
+    UWORD             rc_PrevAnalogHourTick;
+    UWORD             rc_PrevAnalogMinuteTick;
+    UWORD             rc_PrevAnalogSecondTick;
 };
 
 /*
  * Binds the context to the window it will draw into.
  */
 BOOL RenderInit(struct RenderContext *rc, struct Window *win,
-                BOOL showSeconds);
+                BOOL showSeconds, BOOL analog);
 
 /* Completes renderer shutdown. */
 void RenderExit(struct RenderContext *rc);
@@ -54,6 +59,10 @@ void RenderExit(struct RenderContext *rc);
  */
 void RenderClock(struct RenderContext *rc, const char *time, const char *date,
                  BOOL showSeconds, BOOL darkBackground);
+
+/* Draws the full-screen analogue face and its three hands. */
+void RenderAnalogClock(struct RenderContext *rc, const struct ClockTime *time,
+                       BOOL showSeconds, BOOL darkBackground);
 
 /* Shows or erases the application name/version in the system font. */
 void RenderSetInfoVisible(struct RenderContext *rc, BOOL visible);
