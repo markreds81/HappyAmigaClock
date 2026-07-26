@@ -1,8 +1,10 @@
 #include "config.h"
 
-extern struct Library *IconBase;
 extern struct DosLibrary *DOSBase;
 
+struct Library *IconBase;
+
+#define ICON_LIB_VERSION 33L
 #define ARG_TEMPLATE "SECONDS/K,INVERT/K/N,MODE/K,DATEALWAYS/K,CHIME/K,ANALOG/K"
 #define ARG_SECONDS 0
 #define ARG_INVERT 1
@@ -186,6 +188,8 @@ static BOOL loadWorkbenchConfig(struct AppConfig *config,
 
 BOOL ConfigLoad(struct AppConfig *config, int argc, char **argv)
 {
+    BOOL loaded;
+
     config->ac_ShowSeconds = TRUE;
     config->ac_InvertMinutes = DEFAULT_INVERT_MINUTES;
     config->ac_StartDark = FALSE;
@@ -193,8 +197,16 @@ BOOL ConfigLoad(struct AppConfig *config, int argc, char **argv)
     config->ac_Chime = FALSE;
     config->ac_Analog = FALSE;
 
-    if (argc == 0)
-        return loadWorkbenchConfig(config, (struct WBStartup *)argv);
+    IconBase = OpenLibrary("icon.library", ICON_LIB_VERSION);
+    if (!IconBase)
+        return FALSE;
 
-    return loadShellConfig(config);
+    if (argc == 0)
+        loaded = loadWorkbenchConfig(config, (struct WBStartup *)argv);
+    else
+        loaded = loadShellConfig(config);
+
+    CloseLibrary(IconBase);
+    IconBase = NULL;
+    return loaded;
 }

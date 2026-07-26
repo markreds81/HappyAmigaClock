@@ -6,13 +6,6 @@
 #include "render.h"
 #include "audio.h"
 
-/*
- * Timer tick period: ~200 ms rather than a full second. Polling this
- * often means the second actually displayed can lag reality by at most
- * ~200 ms, and - since the loop always resyncs against DateStamp() - no
- * drift accumulates over time, unlike naively resubmitting a 1-second
- * request after each redraw.
- */
 #define TICK_SECONDS 0L
 #define TICK_MICROS  200000UL
 #define POINTER_HIDE_TICKS 50
@@ -94,8 +87,6 @@ int AppMain(const struct AppConfig *config)
     done = FALSE;
     while (!done)
     {
-        /* Wait simultaneously on Intuition, the timer and a Ctrl+C break
-           from the shell - the loop never blocks on just one source. */
         ULONG sig = Wait(winSig | timerSig | SIGBREAKF_CTRL_C);
 
         if (sig & timerSig)

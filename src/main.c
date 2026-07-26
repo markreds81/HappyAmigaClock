@@ -5,7 +5,6 @@
 
 struct IntuitionBase *IntuitionBase;
 struct GfxBase *GfxBase;
-struct Library *IconBase;
 
 const char AppVersionTag[] = APP_VERSION_TAG;
 
@@ -17,19 +16,16 @@ int main(int argc, char **argv)
     struct AppConfig config;
 
     rc = 0;
-
     IntuitionBase = (struct IntuitionBase *)OpenLibrary("intuition.library", LIB_VERSION);
+    
     if (IntuitionBase != NULL) {
         GfxBase = (struct GfxBase *)OpenLibrary("graphics.library", LIB_VERSION);
         if (GfxBase != NULL) {
-            IconBase = OpenLibrary("icon.library", LIB_VERSION);
-            if (IconBase != NULL) {
-                rc = ConfigLoad(&config, argc, argv) ? AppMain(&config) : 10;
-                CloseLibrary(IconBase);
-            }
+            rc = ConfigLoad(&config, argc, argv) ? AppMain(&config) : 10;
             CloseLibrary((struct Library *)GfxBase);
         }
         CloseLibrary((struct Library *)IntuitionBase);
     }
+
     return rc;
 }
