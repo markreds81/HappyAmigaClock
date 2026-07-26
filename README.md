@@ -204,6 +204,73 @@ FLIP=YES
 
 I ToolTypes vengono letti tramite `icon.library` e `FindToolType()`.
 
+## Algoritmo dell'animazione flip
+
+L'animazione riproduce il movimento di un orologio meccanico split-flap.
+Ogni cifra viene considerata come due metà separate da una cerniera
+orizzontale. Il programma conserva il testo già visualizzato e quello
+nuovo, quindi anima soltanto le posizioni nelle quali entrambe le cifre
+sono numeriche e differenti. Le cifre immutate e i separatori vengono
+copiati normalmente nel fotogramma.
+
+La transizione usa otto fotogrammi intermedi, richiesti ogni 40 ms, ed è
+divisa in due fasi:
+
+1. Nei primi quattro fotogrammi la metà superiore della vecchia cifra si
+   comprime verticalmente verso la cerniera. Dietro di essa è già presente
+   la metà superiore della nuova cifra, che viene rivelata progressivamente.
+   La metà inferiore vecchia rimane ferma.
+2. Nei quattro fotogrammi successivi la metà inferiore della nuova cifra
+   si espande dalla cerniera verso il basso, coprendo progressivamente la
+   metà inferiore vecchia.
+
+Al centro della transizione il fotogramma è quindi composto dalla metà
+superiore nuova e dalla metà inferiore vecchia. L'altezza della parte
+mobile segue questi passi:
+
+```text
+vecchia metà superiore: 75% → 50% → 25% → 0%
+nuova metà inferiore:    25% → 50% → 75% → 100%
+```
+
+### Compressione verticale
+
+Le bitmap originali del font non vengono modificate né scalate dalla CPU
+pixel per pixel. Per ottenere una metà compressa, il renderer calcola
+quali righe sorgente devono essere conservate e le trasferisce una alla
+volta con `BltTemplate()`.
+
+La selezione delle righe usa un accumulatore intero simile all'algoritmo
+di Bresenham. Nel ciclo interno non sono quindi necessarie moltiplicazioni,
+divisioni o operazioni in virgola mobile: la CPU aggiorna soltanto
+l'indice della riga e un errore incrementale, mentre il blitter esegue il
+trasferimento effettivo dei pixel.
+
+Quando altezza sorgente e destinazione coincidono, il renderer evita il
+ciclo e trasferisce l'intera metà con una sola chiamata al blitter.
+
+### Composizione fuori schermo
+
+Tutti gli elementi del fotogramma — metà fisse, parte compressa, cifre
+immutate e linea della cerniera — vengono prima disegnati in una bitmap
+monocromatica temporanea in CHIP RAM. La sequenza di visualizzazione è:
+
+1. composizione completa nel buffer fuori schermo;
+2. `WaitBlit()` per attendere la conclusione dei blit di composizione;
+3. `WaitTOF()` per sincronizzarsi con il vertical retrace;
+4. un'unica copia del buffer nella finestra con `BltBitMapRastPort()`;
+5. un ultimo `WaitBlit()` prima di riutilizzare il buffer.
+
+In questo modo lo schermo non mostra le operazioni intermedie di
+cancellazione e ridisegno. Il costo aggiuntivo riguarda soprattutto la
+composizione fuori schermo; l'aggiornamento visibile rimane un singolo
+blit per fotogramma.
+
+L'orario non viene incrementato contando i fotogrammi. Al termine di ogni
+transizione viene nuovamente confrontato con l'orario di sistema: un
+eventuale rallentamento può allungare temporaneamente l'effetto, ma non
+produce una deriva progressiva dell'orologio visualizzato.
+
 ## Requisiti per la compilazione
 
 - [VBCC](http://sun.hasenbraten.de/vbcc/) con target `m68k-kick13`;
