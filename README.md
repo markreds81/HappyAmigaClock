@@ -3,6 +3,12 @@
 Happy Amiga Clock è un orologio a schermo intero per Commodore Amiga,
 scritto in C usando direttamente le API di AmigaOS.
 
+Il progetto prende ispirazione da
+[HappyPlusClock](https://www.gryphel.com/c/sw/general/hapclock/), ma non
+è un semplice porting: è una reimplementazione completa e indipendente,
+progettata appositamente per sfruttare le API di AmigaOS e le
+caratteristiche hardware del Commodore Amiga.
+
 Versione corrente: **1.0** (`26.07.2026`).
 
 Mostra l'ora e la data al centro dello schermo Workbench con un font
@@ -10,7 +16,7 @@ monocromatico incorporato nell'eseguibile. Le cifre vengono trasferite
 tramite il blitter con `BltTemplate()`: non sono richiesti font installati
 sull'Amiga e il ridisegno rimane rapido anche su un Motorola 68000.
 
-Caratteristiche principali:
+Caratteristiche tecniche principali:
 
 - compatibilità con Kickstart 1.3;
 - avvio da Shell oppure tramite icona Workbench;
@@ -35,59 +41,111 @@ $VER: HappyAmigaClock 1.0 (26.07.2026)
 La versione può quindi essere interrogata con il comando AmigaDOS
 `Version` sui sistemi che lo supportano.
 
+## Screenshot
+
+### Orologio digitale — modalità chiara
+
+![Happy Amiga Clock in modalità digitale con sfondo chiaro](assets/screenshots/digital-light.png)
+
+### Orologio digitale — modalità scura
+
+![Happy Amiga Clock in modalità digitale con sfondo scuro](assets/screenshots/digital-dark.png)
+
+### Orologio analogico — modalità scura
+
+![Happy Amiga Clock in modalità analogica con sfondo scuro](assets/screenshots/analog-dark.png)
+
 ## Configurazione
 
 Le opzioni `SECONDS`, `INVERT`, `MODE`, `DATEALWAYS`, `CHIME` e `ANALOG`
 controllano il formato, l'alternanza dei colori, la visibilità della
 data e il segnale orario.
 
+Per tutte le opzioni `YES|NO` sono accettati anche i valori equivalenti
+`ON|OFF` e `TRUE|FALSE`.
+
+### `SECONDS`
+
+Controlla la visualizzazione dei secondi.
+
 | Valore | Risultato |
 | --- | --- |
 | `SECONDS=YES` | Mostra `hh:mm:ss` |
 | `SECONDS=NO` | Mostra `hh:mm` con separatore lampeggiante |
 
-Sono accettati anche `ON/OFF` e `TRUE/FALSE`. Se l'opzione non è presente,
-il valore predefinito è `SECONDS=YES`.
+**Valore predefinito:** `SECONDS=YES`.
 
-`INVERT=<minuti>` stabilisce ogni quanti minuti scambiare sfondo e testo.
-Il valore predefinito è `720`, cioè 12 ore.
+In modalità analogica determina se mostrare o nascondere la lancetta dei
+secondi.
 
-`MODE=LIGHT|DARK` sceglie i colori iniziali:
+### `INVERT`
 
-| Valore | Risultato iniziale |
+Stabilisce ogni quanti minuti scambiare i colori dello sfondo e
+dell'orologio.
+
+| Valore | Risultato |
+| --- | --- |
+| `INVERT=0` | Disabilita l'inversione automatica |
+| `INVERT=<minuti>` | Inverte i colori all'intervallo indicato, da 1 a 65535 minuti |
+
+**Valore predefinito:** `INVERT=720`, cioè ogni 12 ore.
+
+L'intervallo parte dal minuto in cui viene avviato il programma e il
+cambio avviene al passaggio a un nuovo minuto.
+
+### `MODE`
+
+Sceglie la combinazione di colori iniziale.
+
+| Valore | Risultato |
 | --- | --- |
 | `MODE=LIGHT` | Sfondo bianco e testo nero |
 | `MODE=DARK` | Sfondo nero e testo bianco |
 
-Il valore predefinito è `MODE=LIGHT`. L'intervallo parte dal minuto in cui
-viene avviato il programma e il cambio avviene sempre al passaggio a un
-nuovo minuto. Con `INVERT=0` l'inversione è disabilitata e la modalità
-scelta rimane invariata.
+**Valore predefinito:** `MODE=LIGHT`.
 
-`DATEALWAYS=YES|NO` stabilisce il comportamento della data:
+Con `INVERT=0` la combinazione scelta rimane invariata.
+
+### `DATEALWAYS`
+
+Stabilisce il comportamento della data dopo l'inattività del mouse.
 
 | Valore | Risultato |
 | --- | --- |
 | `DATEALWAYS=NO` | Nasconde la data dopo 10 secondi di inattività e la ripristina al movimento del mouse |
 | `DATEALWAYS=YES` | Mantiene la data sempre visibile |
 
-Il valore predefinito è `DATEALWAYS=NO`.
+**Valore predefinito:** `DATEALWAYS=NO`.
 
-`CHIME=YES|NO` abilita o disabilita un breve segnale acustico a due note
-allo scoccare di ogni ora. Il suono viene generato dal programma e
-riprodotto tramite `audio.device`, senza richiedere file esterni. Il
-valore predefinito è `CHIME=NO`.
+Questa opzione non ha effetto in modalità analogica, nella quale la data
+non viene visualizzata.
 
-`ANALOG=YES|NO` sceglie il tipo di quadrante:
+### `CHIME`
+
+Controlla il segnale acustico a due note allo scoccare di ogni ora.
+
+| Valore | Risultato |
+| --- | --- |
+| `CHIME=NO` | Disabilita il segnale orario |
+| `CHIME=YES` | Riproduce il segnale orario |
+
+**Valore predefinito:** `CHIME=NO`.
+
+Il suono viene generato dal programma e riprodotto tramite
+`audio.device`, senza richiedere file esterni.
+
+### `ANALOG`
+
+Sceglie il tipo di quadrante.
 
 | Valore | Risultato |
 | --- | --- |
 | `ANALOG=NO` | Mostra l'orologio digitale e la data |
 | `ANALOG=YES` | Mostra il quadrante analogico a tutto schermo |
 
-In modalità analogica `SECONDS=YES` mostra la lancetta dei secondi,
-mentre `SECONDS=NO` la nasconde. La data non viene sovrapposta al
-quadrante. Il valore predefinito è `ANALOG=NO`.
+**Valore predefinito:** `ANALOG=NO`.
+
+In modalità analogica la data non viene sovrapposta al quadrante.
 
 ### Avvio dalla Shell
 
