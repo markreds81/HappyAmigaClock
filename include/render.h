@@ -37,6 +37,12 @@ struct RenderContext
     BOOL rc_HasClockPalette;
     BOOL rc_DateVisible;
     BOOL rc_FontReady;
+    struct BitMap rc_TimeBufferBitMap;
+    struct RastPort rc_TimeBufferRastPort;
+    PLANEPTR rc_TimeBufferPlane;
+    WORD rc_TimeBufferWidth;
+    WORD rc_TimeBufferHeight;
+    BOOL rc_TimeBufferReady;
     BOOL rc_AnalogHasPrev;
     UWORD rc_PrevAnalogHourTick;
     UWORD rc_PrevAnalogMinuteTick;
@@ -47,7 +53,7 @@ struct RenderContext
  * Binds the context to the window it will draw into.
  */
 BOOL RenderInit(struct RenderContext *rc, struct Window *win, BOOL showSeconds,
-                BOOL analog);
+                BOOL analog, BOOL flip);
 
 /* Completes renderer shutdown. */
 void RenderExit(struct RenderContext *rc);

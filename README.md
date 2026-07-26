@@ -170,6 +170,11 @@ L'opzione non ha effetto in modalità analogica. Durante la transizione
 vengono ridisegnate soltanto le cifre effettivamente cambiate; i
 separatori e la data non vengono animati.
 
+I fotogrammi vengono composti in una bitmap temporanea monocromatica e
+copiati sullo schermo con un unico blit sincronizzato al vertical
+retrace. Il buffer occupa circa 3,5 KB di CHIP RAM con o senza secondi
+ed è allocato soltanto quando `FLIP=YES`.
+
 ### Avvio dalla Shell
 
 Su AmigaOS 2.0 o successivo gli argomenti vengono analizzati con

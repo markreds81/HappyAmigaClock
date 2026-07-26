@@ -87,8 +87,29 @@ static void redrawChangedChars(struct RastPort *rp, const char *prevText,
     }
 }
 
+static BOOL initTimeBuffer(struct RenderContext *rc, BOOL showSeconds)
+{
+    WORD height = showSeconds ? FONT_LARGE_HEIGHT : FONT_COMPACT_HEIGHT;
+    const char *sample = showSeconds ? "00:00:00" : "00:00";
+
+    rc->rc_TimeBufferWidth = FontStringWidth(sample, height);
+    rc->rc_TimeBufferHeight = height + 1;
+    rc->rc_TimeBufferPlane =
+        AllocRaster(rc->rc_TimeBufferWidth, rc->rc_TimeBufferHeight);
+    if (!rc->rc_TimeBufferPlane) return FALSE;
+
+    InitBitMap(&rc->rc_TimeBufferBitMap, 1, rc->rc_TimeBufferWidth,
+               rc->rc_TimeBufferHeight);
+    rc->rc_TimeBufferBitMap.Planes[0] = rc->rc_TimeBufferPlane;
+    InitRastPort(&rc->rc_TimeBufferRastPort);
+    rc->rc_TimeBufferRastPort.BitMap = &rc->rc_TimeBufferBitMap;
+    SetBPen(&rc->rc_TimeBufferRastPort, 0);
+    rc->rc_TimeBufferReady = TRUE;
+    return TRUE;
+}
+
 BOOL RenderInit(struct RenderContext *rc, struct Window *win, BOOL showSeconds,
-                BOOL analog)
+                BOOL analog, BOOL flip)
 {
     struct RastPort *rp = win->RPort;
 
@@ -103,6 +124,8 @@ BOOL RenderInit(struct RenderContext *rc, struct Window *win, BOOL showSeconds,
     rc->rc_HasClockPalette = FALSE;
     rc->rc_DateVisible = TRUE;
     rc->rc_FontReady = FALSE;
+    rc->rc_TimeBufferPlane = NULL;
+    rc->rc_TimeBufferReady = FALSE;
     rc->rc_AnalogHasPrev = FALSE;
 
     if (rc->rc_ViewPort->ColorMap && rc->rc_ViewPort->ColorMap->Count >= 2 &&
@@ -119,13 +142,30 @@ BOOL RenderInit(struct RenderContext *rc, struct Window *win, BOOL showSeconds,
     SetAPen(rp, 0);
     RectFill(rp, 0, 0, win->Width - 1, win->Height - 1);
 
-    if (!analog) rc->rc_FontReady = FontInit(showSeconds);
+    if (!analog)
+    {
+        rc->rc_FontReady = FontInit(showSeconds);
+        if (rc->rc_FontReady && flip && !initTimeBuffer(rc, showSeconds))
+        {
+            FontExit();
+            rc->rc_FontReady = FALSE;
+        }
+    }
 
     return analog || rc->rc_FontReady;
 }
 
 void RenderExit(struct RenderContext *rc)
 {
+    if (rc->rc_TimeBufferReady)
+    {
+        WaitBlit();
+        FreeRaster(rc->rc_TimeBufferPlane, rc->rc_TimeBufferWidth,
+                   rc->rc_TimeBufferHeight);
+        rc->rc_TimeBufferPlane = NULL;
+        rc->rc_TimeBufferReady = FALSE;
+    }
+
     if (rc->rc_HasSavedPalette)
     {
         setRGB4Value(rc->rc_ViewPort, 0, rc->rc_SavedColor0);
@@ -133,6 +173,33 @@ void RenderExit(struct RenderContext *rc)
     }
 
     if (rc->rc_FontReady) FontExit();
+}
+
+static void clearTimeBuffer(struct RenderContext *rc)
+{
+    struct RastPort *rp = &rc->rc_TimeBufferRastPort;
+
+    WaitBlit();
+    SetAPen(rp, 0);
+    RectFill(rp, 0, 0, rc->rc_TimeBufferWidth - 1, rc->rc_TimeBufferHeight - 1);
+}
+
+static void composeTimeBuffer(struct RenderContext *rc, const char *time,
+                              WORD height)
+{
+    struct RastPort *rp = &rc->rc_TimeBufferRastPort;
+
+    clearTimeBuffer(rc);
+    SetAPen(rp, 1);
+    FontDrawString(rp, time, 0, 0, height);
+    WaitBlit();
+}
+
+static void copyTimeBufferToScreen(struct RenderContext *rc, WORD x, WORD y)
+{
+    BltBitMapRastPort(&rc->rc_TimeBufferBitMap, 0, 0, rc->rc_Window->RPort, x,
+                      y, rc->rc_TimeBufferWidth, rc->rc_TimeBufferHeight, 0xc0);
+    WaitBlit();
 }
 
 void RenderDigitalClock(struct RenderContext *rc, const char *time,
@@ -164,17 +231,25 @@ void RenderDigitalClock(struct RenderContext *rc, const char *time,
                       rc->rc_PrevTimeHeight == timeHeight &&
                       rc->rc_PrevDateHeight == dateHeight;
 
+    if (sameLayout && rc->rc_TimeBufferReady)
+        composeTimeBuffer(rc, time, timeHeight);
+
     setClockPalette(rc, darkBackground);
 
-    /* Sync to the vertical blank so the (now small) update lands entirely
-       within the blanking interval instead of tearing across a frame
-       that's actively being scanned out - this is what removed the
-       flicker on the real/emulated single-buffered screen. */
+    /*
+     * With the flip buffer, the time line is already complete here and the
+     * visible update is a single copy. Without it, this still aligns the
+     * small changed-character update to the start of a video frame.
+     */
     WaitTOF();
 
     if (sameLayout)
     {
-        redrawChangedChars(rp, rc->rc_PrevTime, time, timeX, timeY, timeHeight);
+        if (rc->rc_TimeBufferReady)
+            copyTimeBufferToScreen(rc, timeX, timeY);
+        else
+            redrawChangedChars(rp, rc->rc_PrevTime, time, timeX, timeY,
+                               timeHeight);
         if (rc->rc_DateVisible)
             redrawChangedChars(rp, rc->rc_PrevDate, date, dateX, dateY,
                                dateHeight);
@@ -220,18 +295,18 @@ void RenderDigitalClock(struct RenderContext *rc, const char *time,
 void RenderDigitalFlipFrame(struct RenderContext *rc, const char *time,
                             BOOL showSeconds, BOOL darkBackground, WORD frame)
 {
-    struct RastPort *rp = rc->rc_Window->RPort;
+    struct RastPort *rp = &rc->rc_TimeBufferRastPort;
     WORD height = showSeconds ? FONT_LARGE_HEIGHT : FONT_COMPACT_HEIGHT;
     WORD width = FontStringWidth(time, height);
     WORD x = (rc->rc_Window->Width - width) / 2;
     WORD y = (rc->rc_Window->Height - height) / 2;
     WORD visibleRows;
-    WORD cx = x;
+    WORD cx = 0;
     const char *oldText = rc->rc_PrevTime;
     const char *newText = time;
 
-    if (!rc->rc_HasPrev || rc->rc_PrevTimeX != x || rc->rc_PrevLineY != y ||
-        rc->rc_PrevTimeHeight != height)
+    if (!rc->rc_HasPrev || !rc->rc_TimeBufferReady || rc->rc_PrevTimeX != x ||
+        rc->rc_PrevLineY != y || rc->rc_PrevTimeHeight != height)
         return;
 
     if (frame <= 1)
@@ -241,8 +316,7 @@ void RenderDigitalFlipFrame(struct RenderContext *rc, const char *time,
     else
         visibleRows = (height * 3) / 4;
 
-    setClockPalette(rc, darkBackground);
-    WaitTOF();
+    clearTimeBuffer(rc);
 
     while (*newText)
     {
@@ -251,22 +325,29 @@ void RenderDigitalFlipFrame(struct RenderContext *rc, const char *time,
         if (*oldText != *newText && *oldText >= '0' && *oldText <= '9' &&
             *newText >= '0' && *newText <= '9')
         {
-            SetAPen(rp, 0);
-            RectFill(rp, cx, y, cx + advance - 1, y + height);
-
             SetAPen(rp, 1);
-            FontDrawCharRows(rp, frame <= 2 ? *oldText : *newText, cx, y,
+            FontDrawCharRows(rp, frame <= 2 ? *oldText : *newText, cx, 0,
                              height, 0, visibleRows);
 
             /* The bright centre seam sells the mechanical hinge effect. */
-            Move(rp, cx, y + height / 2);
-            Draw(rp, cx + advance - 2, y + height / 2);
+            Move(rp, cx, height / 2);
+            Draw(rp, cx + advance - 2, height / 2);
+        }
+        else
+        {
+            SetAPen(rp, 1);
+            FontDrawChar(rp, *newText, cx, 0, height);
         }
 
         cx += advance;
         oldText++;
         newText++;
     }
+
+    WaitBlit();
+    setClockPalette(rc, darkBackground);
+    WaitTOF();
+    copyTimeBufferToScreen(rc, x, y);
 }
 
 /*

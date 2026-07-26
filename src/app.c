@@ -55,7 +55,8 @@ int AppMain(const struct AppConfig *config)
         return 20;
     }
 
-    if (!RenderInit(&render, win, config->ac_ShowSeconds, config->ac_Analog))
+    if (!RenderInit(&render, win, config->ac_ShowSeconds, config->ac_Analog,
+                    config->ac_Flip))
     {
         closeTimer(&timer);
         CloseAppWindow(win);
