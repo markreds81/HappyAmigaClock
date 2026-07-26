@@ -57,8 +57,8 @@ void RenderExit(struct RenderContext *rc);
  * both centered horizontally using the embedded font (see font.h).
  * Only the area occupied by the previous draw (if any) is erased first.
  */
-void RenderClock(struct RenderContext *rc, const char *time, const char *date,
-                 BOOL showSeconds, BOOL darkBackground);
+void RenderDigitalClock(struct RenderContext *rc, const char *time, const char *date,
+                        BOOL showSeconds, BOOL darkBackground);
 
 /* Draws the full-screen analogue face and its three hands. */
 void RenderAnalogClock(struct RenderContext *rc, const struct ClockTime *time,

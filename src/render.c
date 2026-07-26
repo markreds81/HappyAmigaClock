@@ -140,8 +140,8 @@ void RenderExit(struct RenderContext *rc)
         FontExit();
 }
 
-void RenderClock(struct RenderContext *rc, const char *time, const char *date,
-                 BOOL showSeconds, BOOL darkBackground)
+void RenderDigitalClock(struct RenderContext *rc, const char *time, const char *date,
+                        BOOL showSeconds, BOOL darkBackground)
 {
     struct RastPort *rp = rc->rc_Window->RPort;
     WORD screenHeight = rc->rc_Window->Height;

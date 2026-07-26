@@ -72,9 +72,9 @@ int AppMain(const struct AppConfig *config)
                           darkBackgroundFor(&previous, config,
                                             paletteStartMinute));
     else
-        RenderClock(&render, timeText, dateText, config->ac_ShowSeconds,
-                    darkBackgroundFor(&previous, config,
-                                      paletteStartMinute));
+        RenderDigitalClock(&render, timeText, dateText, config->ac_ShowSeconds,
+                           darkBackgroundFor(&previous, config,
+                                             paletteStartMinute));
     RenderSetInfoVisible(&render, TRUE);
 
     winSig   = 1L << win->UserPort->mp_SigBit;
@@ -125,10 +125,10 @@ int AppMain(const struct AppConfig *config)
                                       darkBackgroundFor(&current, config,
                                                         paletteStartMinute));
                 else
-                    RenderClock(&render, timeText, dateText,
-                                config->ac_ShowSeconds,
-                                darkBackgroundFor(&current, config,
-                                                  paletteStartMinute));
+                    RenderDigitalClock(&render, timeText, dateText,
+                                       config->ac_ShowSeconds,
+                                       darkBackgroundFor(&current, config,
+                                                         paletteStartMinute));
                 previous = current;
             }
 
