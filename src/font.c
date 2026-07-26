@@ -136,29 +136,52 @@ WORD FontCharAdvance(char c, WORD height)
     return FONT_SMALL_ADVANCE;
 }
 
-void FontDrawChar(struct RastPort *rp, char c, WORD x, WORD y, WORD height)
+void FontDrawCharRows(struct RastPort *rp, char c, WORD x, WORD y, WORD height,
+                      WORD firstRow, WORD rowCount)
 {
     BOOL small = !isCompact(height) && !isLarge(height);
     WORD index = glyphIndex(c, small ? dateGlyphChars : timeGlyphChars);
+    WORD glyphHeight;
+    WORD rowBytes;
+    WORD width;
+    UBYTE *bitmap;
 
-    if (index < 0) return;
+    if (index < 0 || firstRow < 0 || rowCount <= 0) return;
 
     SetDrMd(rp, JAM1);
     if (isCompact(height))
-        BltTemplate((PLANEPTR)((UBYTE *)chipTime + index * FONT_COMPACT_HEIGHT *
-                                                       FONT_COMPACT_ROW_BYTES),
-                    0, FONT_COMPACT_ROW_BYTES, rp, x, y, FONT_COMPACT_WIDTH,
-                    FONT_COMPACT_HEIGHT);
+    {
+        glyphHeight = FONT_COMPACT_HEIGHT;
+        rowBytes = FONT_COMPACT_ROW_BYTES;
+        width = FONT_COMPACT_WIDTH;
+        bitmap = (UBYTE *)chipTime;
+    }
     else if (isLarge(height))
-        BltTemplate((PLANEPTR)((UBYTE *)chipTime + index * FONT_LARGE_HEIGHT *
-                                                       FONT_LARGE_ROW_BYTES),
-                    0, FONT_LARGE_ROW_BYTES, rp, x, y, FONT_LARGE_WIDTH,
-                    FONT_LARGE_HEIGHT);
+    {
+        glyphHeight = FONT_LARGE_HEIGHT;
+        rowBytes = FONT_LARGE_ROW_BYTES;
+        width = FONT_LARGE_WIDTH;
+        bitmap = (UBYTE *)chipTime;
+    }
     else
-        BltTemplate((PLANEPTR)((UBYTE *)chipSmall + index * FONT_SMALL_HEIGHT *
-                                                        FONT_SMALL_ROW_BYTES),
-                    0, FONT_SMALL_ROW_BYTES, rp, x, y, FONT_SMALL_WIDTH,
-                    FONT_SMALL_HEIGHT);
+    {
+        glyphHeight = FONT_SMALL_HEIGHT;
+        rowBytes = FONT_SMALL_ROW_BYTES;
+        width = FONT_SMALL_WIDTH;
+        bitmap = (UBYTE *)chipSmall;
+    }
+
+    if (firstRow >= glyphHeight) return;
+    if (firstRow + rowCount > glyphHeight) rowCount = glyphHeight - firstRow;
+
+    BltTemplate(
+        (PLANEPTR)(bitmap + ((LONG)index * glyphHeight + firstRow) * rowBytes),
+        0, rowBytes, rp, x, y + firstRow, width, rowCount);
+}
+
+void FontDrawChar(struct RastPort *rp, char c, WORD x, WORD y, WORD height)
+{
+    FontDrawCharRows(rp, c, x, y, height, 0, height);
 }
 
 void FontDrawString(struct RastPort *rp, const char *s, WORD x, WORD y,

@@ -61,6 +61,14 @@ void RenderDigitalClock(struct RenderContext *rc, const char *time,
                         const char *date, BOOL showSeconds,
                         BOOL darkBackground);
 
+/*
+ * Draws one intermediate frame of the optional split-flap transition.
+ * frame is 1..3; the caller completes the transition with
+ * RenderDigitalClock(), which commits the new text to the context.
+ */
+void RenderDigitalFlipFrame(struct RenderContext *rc, const char *time,
+                            BOOL showSeconds, BOOL darkBackground, WORD frame);
+
 /* Draws the full-screen analogue face and its three hands. */
 void RenderAnalogClock(struct RenderContext *rc, const struct ClockTime *time,
                        BOOL showSeconds, BOOL darkBackground);

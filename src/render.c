@@ -217,6 +217,58 @@ void RenderDigitalClock(struct RenderContext *rc, const char *time,
     rc->rc_HasPrev = TRUE;
 }
 
+void RenderDigitalFlipFrame(struct RenderContext *rc, const char *time,
+                            BOOL showSeconds, BOOL darkBackground, WORD frame)
+{
+    struct RastPort *rp = rc->rc_Window->RPort;
+    WORD height = showSeconds ? FONT_LARGE_HEIGHT : FONT_COMPACT_HEIGHT;
+    WORD width = FontStringWidth(time, height);
+    WORD x = (rc->rc_Window->Width - width) / 2;
+    WORD y = (rc->rc_Window->Height - height) / 2;
+    WORD visibleRows;
+    WORD cx = x;
+    const char *oldText = rc->rc_PrevTime;
+    const char *newText = time;
+
+    if (!rc->rc_HasPrev || rc->rc_PrevTimeX != x || rc->rc_PrevLineY != y ||
+        rc->rc_PrevTimeHeight != height)
+        return;
+
+    if (frame <= 1)
+        visibleRows = (height * 3) / 4;
+    else if (frame == 2)
+        visibleRows = height / 2;
+    else
+        visibleRows = (height * 3) / 4;
+
+    setClockPalette(rc, darkBackground);
+    WaitTOF();
+
+    while (*newText)
+    {
+        WORD advance = FontCharAdvance(*newText, height);
+
+        if (*oldText != *newText && *oldText >= '0' && *oldText <= '9' &&
+            *newText >= '0' && *newText <= '9')
+        {
+            SetAPen(rp, 0);
+            RectFill(rp, cx, y, cx + advance - 1, y + height);
+
+            SetAPen(rp, 1);
+            FontDrawCharRows(rp, frame <= 2 ? *oldText : *newText, cx, y,
+                             height, 0, visibleRows);
+
+            /* The bright centre seam sells the mechanical hinge effect. */
+            Move(rp, cx, y + height / 2);
+            Draw(rp, cx + advance - 2, y + height / 2);
+        }
+
+        cx += advance;
+        oldText++;
+        newText++;
+    }
+}
+
 /*
  * Sine values for 0, 6, ... 90 degrees, scaled by 1024.  Folding the
  * other three quadrants around this small table avoids floating point

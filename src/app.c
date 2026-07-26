@@ -8,7 +8,9 @@
 
 #define TICK_SECONDS 0L
 #define TICK_MICROS 200000UL
-#define POINTER_HIDE_TICKS 50
+#define FLIP_TICK_MICROS 60000UL
+#define FLIP_LAST_FRAME 4
+#define POINTER_HIDE_MICROS 10000000UL
 
 static BOOL darkBackgroundFor(const struct ClockTime *time,
                               const struct AppConfig *config, ULONG startMinute)
@@ -36,9 +38,12 @@ int AppMain(const struct AppConfig *config)
     ULONG winSig;
     ULONG timerSig;
     ULONG paletteStartMinute;
-    UWORD pointerIdleTicks;
+    ULONG pointerIdleMicros;
     BOOL pointerHidden;
     BOOL audioReady;
+    BOOL flipActive;
+    WORD flipFrame;
+    struct ClockTime flipTarget;
     BOOL done;
 
     win = OpenAppWindow();
@@ -79,8 +84,10 @@ int AppMain(const struct AppConfig *config)
 
     startTimer(&timer, TICK_SECONDS, TICK_MICROS);
 
-    pointerIdleTicks = 0;
+    pointerIdleMicros = 0;
     pointerHidden = FALSE;
+    flipActive = FALSE;
+    flipFrame = 0;
     done = FALSE;
     while (!done)
     {
@@ -92,8 +99,9 @@ int AppMain(const struct AppConfig *config)
 
             if (!pointerHidden)
             {
-                pointerIdleTicks++;
-                if (pointerIdleTicks >= POINTER_HIDE_TICKS)
+                pointerIdleMicros +=
+                    flipActive ? FLIP_TICK_MICROS : TICK_MICROS;
+                if (pointerIdleMicros >= POINTER_HIDE_MICROS)
                 {
                     if (WindowHidePointer(win))
                     {
@@ -102,12 +110,32 @@ int AppMain(const struct AppConfig *config)
                         if (!config->ac_Analog && !config->ac_DateAlwaysVisible)
                             RenderSetDateVisible(&render, FALSE);
                     }
-                    pointerIdleTicks = POINTER_HIDE_TICKS;
+                    pointerIdleMicros = POINTER_HIDE_MICROS;
                 }
             }
 
             ClockNow(&current);
-            if (ClockChanged(&current, &previous))
+            if (flipActive)
+            {
+                flipFrame++;
+                if (flipFrame < FLIP_LAST_FRAME)
+                    RenderDigitalFlipFrame(
+                        &render, timeText, config->ac_ShowSeconds,
+                        darkBackgroundFor(&flipTarget, config,
+                                          paletteStartMinute),
+                        flipFrame);
+                else
+                {
+                    RenderDigitalClock(&render, timeText, dateText,
+                                       config->ac_ShowSeconds,
+                                       darkBackgroundFor(&flipTarget, config,
+                                                         paletteStartMinute));
+                    previous = flipTarget;
+                    flipActive = FALSE;
+                }
+            }
+
+            if (!flipActive && ClockChanged(&current, &previous))
             {
                 if (audioReady && current.ct_Min == 0 &&
                     current.ct_Hour != previous.ct_Hour)
@@ -119,16 +147,29 @@ int AppMain(const struct AppConfig *config)
                     RenderAnalogClock(&render, &current, config->ac_ShowSeconds,
                                       darkBackgroundFor(&current, config,
                                                         paletteStartMinute));
+                else if (config->ac_Flip && (config->ac_ShowSeconds ||
+                                             current.ct_AbsoluteMinute !=
+                                                 previous.ct_AbsoluteMinute))
+                {
+                    flipTarget = current;
+                    flipFrame = 1;
+                    flipActive = TRUE;
+                    RenderDigitalFlipFrame(
+                        &render, timeText, config->ac_ShowSeconds,
+                        darkBackgroundFor(&flipTarget, config,
+                                          paletteStartMinute),
+                        flipFrame);
+                }
                 else
                     RenderDigitalClock(&render, timeText, dateText,
                                        config->ac_ShowSeconds,
                                        darkBackgroundFor(&current, config,
                                                          paletteStartMinute));
-                previous = current;
+                if (!flipActive) previous = current;
             }
 
-            /* Rearm immediately so the next tick is still ~200 ms away */
-            startTimer(&timer, TICK_SECONDS, TICK_MICROS);
+            startTimer(&timer, TICK_SECONDS,
+                       flipActive ? FLIP_TICK_MICROS : TICK_MICROS);
         }
 
         if (sig & winSig)
@@ -139,7 +180,7 @@ int AppMain(const struct AppConfig *config)
 
             if (mouseMoved)
             {
-                pointerIdleTicks = 0;
+                pointerIdleMicros = 0;
                 if (pointerHidden)
                 {
                     WindowShowPointer(win);

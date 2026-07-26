@@ -47,6 +47,13 @@ WORD FontCharAdvance(char c, WORD height);
    pixels tall, using the RastPort's current foreground pen. */
 void FontDrawChar(struct RastPort *rp, char c, WORD x, WORD y, WORD height);
 
+/*
+ * Draws a contiguous group of source rows from a glyph. This lets the
+ * renderer reveal only part of a digit without allocating another bitmap.
+ */
+void FontDrawCharRows(struct RastPort *rp, char c, WORD x, WORD y, WORD height,
+                      WORD firstRow, WORD rowCount);
+
 /* Draws 's' with its top-left corner at (x, y), 'height' pixels tall,
    using the RastPort's current foreground pen (set via SetAPen()). */
 void FontDrawString(struct RastPort *rp, const char *s, WORD x, WORD y,

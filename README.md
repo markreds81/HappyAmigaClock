@@ -34,6 +34,7 @@ Caratteristiche tecniche principali:
 - puntatore del mouse nascosto dopo 10 secondi di inattività;
 - nome e versione mostrati in basso finché il puntatore è visibile;
 - aggiornamento dei soli caratteri modificati;
+- transizione flip opzionale delle cifre in modalità digitale;
 - uscita con un click sinistro, tramite Esc o, da Shell, con Ctrl+C;
 - bitmap del font conservate in CHIP RAM e accessibili direttamente al
   blitter.
@@ -64,9 +65,9 @@ La versione può quindi essere interrogata con il comando AmigaDOS
 
 ## Configurazione
 
-Le opzioni `SECONDS`, `INVERT`, `MODE`, `DATEALWAYS`, `CHIME` e `ANALOG`
-controllano il formato, l'alternanza dei colori, la visibilità della
-data e il segnale orario.
+Le opzioni `SECONDS`, `INVERT`, `MODE`, `DATEALWAYS`, `CHIME`, `ANALOG`
+e `FLIP` controllano il formato, l'alternanza dei colori, la visibilità
+della data, il segnale orario e l'animazione delle cifre.
 
 Per tutte le opzioni `YES|NO` sono accettati anche i valori equivalenti
 `ON|OFF` e `TRUE|FALSE`.
@@ -154,13 +155,28 @@ Sceglie il tipo di quadrante.
 
 In modalità analogica la data non viene sovrapposta al quadrante.
 
+### `FLIP`
+
+Controlla la transizione delle cifre in modalità digitale.
+
+| Valore | Risultato |
+| --- | --- |
+| `FLIP=NO` | Sostituisce immediatamente le cifre cambiate |
+| `FLIP=YES` | Anima le cifre cambiate con un breve effetto a cerniera |
+
+**Valore predefinito:** `FLIP=NO`.
+
+L'opzione non ha effetto in modalità analogica. Durante la transizione
+vengono ridisegnate soltanto le cifre effettivamente cambiate; i
+separatori e la data non vengono animati.
+
 ### Avvio dalla Shell
 
 Su AmigaOS 2.0 o successivo gli argomenti vengono analizzati con
 `ReadArgs()`:
 
 ```text
-HappyAmigaClock ANALOG=YES SECONDS=YES INVERT=60 MODE=DARK CHIME=YES
+HappyAmigaClock ANALOG=NO FLIP=YES SECONDS=YES INVERT=60 MODE=DARK CHIME=YES
 ```
 
 `ReadArgs()` non è disponibile su Kickstart 1.3. In quel caso il programma
@@ -178,6 +194,7 @@ MODE=DARK
 DATEALWAYS=YES
 CHIME=YES
 ANALOG=YES
+FLIP=YES
 ```
 
 I ToolTypes vengono letti tramite `icon.library` e `FindToolType()`.
