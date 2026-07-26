@@ -29,12 +29,19 @@ struct RenderContext
     WORD             rc_PrevDateY;
     WORD             rc_PrevTimeHeight;
     WORD             rc_PrevDateHeight;
+    struct ViewPort  *rc_ViewPort;
+    UWORD             rc_SavedColor0;
+    UWORD             rc_SavedColor1;
+    BOOL              rc_HasSavedPalette;
+    BOOL              rc_DarkBackground;
+    BOOL              rc_HasClockPalette;
 };
 
 /*
  * Binds the context to the window it will draw into.
  */
-BOOL RenderInit(struct RenderContext *rc, struct Window *win);
+BOOL RenderInit(struct RenderContext *rc, struct Window *win,
+                BOOL showSeconds);
 
 /* Completes renderer shutdown. */
 void RenderExit(struct RenderContext *rc);
@@ -46,6 +53,6 @@ void RenderExit(struct RenderContext *rc);
  * erased first.
  */
 void RenderClock(struct RenderContext *rc, const char *time, const char *date,
-                 BOOL showSeconds);
+                 BOOL showSeconds, BOOL darkBackground);
 
 #endif /* RENDER_H */

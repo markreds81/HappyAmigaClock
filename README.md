@@ -14,6 +14,7 @@ Caratteristiche principali:
 - avvio da Shell oppure tramite icona Workbench;
 - visualizzazione opzionale dei secondi;
 - separatore lampeggiante nel formato senza secondi;
+- inversione automatica bianco/nero ogni 12 ore;
 - aggiornamento dei soli caratteri modificati;
 - uscita tramite il tasto Esc o, da Shell, con Ctrl+C;
 - bitmap del font conservate in CHIP RAM e accessibili direttamente al
@@ -21,7 +22,8 @@ Caratteristiche principali:
 
 ## Configurazione
 
-L'opzione `SECONDS` controlla il formato dell'orario.
+Le opzioni `SECONDS`, `INVERT` e `MODE` controllano il formato e
+l'alternanza dei colori.
 
 | Valore | Risultato |
 | --- | --- |
@@ -31,13 +33,28 @@ L'opzione `SECONDS` controlla il formato dell'orario.
 Sono accettati anche `ON/OFF` e `TRUE/FALSE`. Se l'opzione non è presente,
 il valore predefinito è `SECONDS=YES`.
 
+`INVERT=<minuti>` stabilisce ogni quanti minuti scambiare sfondo e testo.
+Il valore predefinito è `720`, cioè 12 ore.
+
+`MODE=LIGHT|DARK` sceglie i colori iniziali:
+
+| Valore | Risultato iniziale |
+| --- | --- |
+| `MODE=LIGHT` | Sfondo bianco e testo nero |
+| `MODE=DARK` | Sfondo nero e testo bianco |
+
+Il valore predefinito è `MODE=LIGHT`. L'intervallo parte dal minuto in cui
+viene avviato il programma e il cambio avviene sempre al passaggio a un
+nuovo minuto. Con `INVERT=0` l'inversione è disabilitata e la modalità
+scelta rimane invariata.
+
 ### Avvio dalla Shell
 
 Su AmigaOS 2.0 o successivo gli argomenti vengono analizzati con
 `ReadArgs()`:
 
 ```text
-HappyAmigaClock SECONDS=NO
+HappyAmigaClock SECONDS=NO INVERT=60 MODE=DARK
 ```
 
 `ReadArgs()` non è disponibile su Kickstart 1.3. In quel caso il programma
@@ -50,6 +67,8 @@ Aprire la finestra delle informazioni dell'icona e aggiungere ai ToolTypes:
 
 ```text
 SECONDS=NO
+INVERT=60
+MODE=DARK
 ```
 
 I ToolTypes vengono letti tramite `icon.library` e `FindToolType()`.

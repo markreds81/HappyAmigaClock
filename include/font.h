@@ -3,7 +3,7 @@
 
 #include "amiga.h"
 
-BOOL FontInit(void);
+BOOL FontInit(BOOL showSeconds);
 void FontExit(void);
 
 /*

@@ -16,6 +16,7 @@ struct ClockTime
     UWORD ct_Hour;   /* 0..23   */
     UWORD ct_Min;    /* 0..59   */
     UWORD ct_Sec;    /* 0..59   */
+    ULONG ct_AbsoluteMinute; /* minutes since 1 Jan 1978 */
 };
 
 /* Length of the buffers required by ClockFormatTime()/ClockFormatDate() */

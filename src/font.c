@@ -20,36 +20,37 @@
 #define LARGE_BYTES ((ULONG)sizeof(glyph_large))
 #define SMALL_BYTES ((ULONG)sizeof(glyph_small))
 
-static APTR chipCompact = NULL;
-static APTR chipLarge = NULL;
+static APTR chipTime = NULL;
+static ULONG chipTimeBytes = 0;
 static APTR chipSmall = NULL;
 
-BOOL FontInit(void)
+BOOL FontInit(BOOL showSeconds)
 {
-    chipCompact = AllocMem(COMPACT_BYTES, MEMF_CHIP);
-    if (!chipCompact)
-        return FALSE;
+    if (showSeconds)
+        chipTimeBytes = LARGE_BYTES;
+    else
+        chipTimeBytes = COMPACT_BYTES;
 
-    chipLarge = AllocMem(LARGE_BYTES, MEMF_CHIP);
-    if (!chipLarge)
+    chipTime = AllocMem(chipTimeBytes, MEMF_CHIP);
+    if (!chipTime)
     {
-        FreeMem(chipCompact, COMPACT_BYTES);
-        chipCompact = NULL;
+        chipTimeBytes = 0;
         return FALSE;
     }
 
     chipSmall = AllocMem(SMALL_BYTES, MEMF_CHIP);
     if (!chipSmall)
     {
-        FreeMem(chipLarge, LARGE_BYTES);
-        chipLarge = NULL;
-        FreeMem(chipCompact, COMPACT_BYTES);
-        chipCompact = NULL;
+        FreeMem(chipTime, chipTimeBytes);
+        chipTime = NULL;
+        chipTimeBytes = 0;
         return FALSE;
     }
 
-    CopyMem((APTR)glyph_compact, chipCompact, COMPACT_BYTES);
-    CopyMem((APTR)glyph_large, chipLarge, LARGE_BYTES);
+    if (showSeconds)
+        CopyMem((APTR)glyph_large, chipTime, LARGE_BYTES);
+    else
+        CopyMem((APTR)glyph_compact, chipTime, COMPACT_BYTES);
     CopyMem((APTR)glyph_small, chipSmall, SMALL_BYTES);
     return TRUE;
 }
@@ -61,15 +62,11 @@ void FontExit(void)
         FreeMem(chipSmall, SMALL_BYTES);
         chipSmall = NULL;
     }
-    if (chipLarge)
+    if (chipTime)
     {
-        FreeMem(chipLarge, LARGE_BYTES);
-        chipLarge = NULL;
-    }
-    if (chipCompact)
-    {
-        FreeMem(chipCompact, COMPACT_BYTES);
-        chipCompact = NULL;
+        FreeMem(chipTime, chipTimeBytes);
+        chipTime = NULL;
+        chipTimeBytes = 0;
     }
 }
 
@@ -148,11 +145,11 @@ void FontDrawChar(struct RastPort *rp, char c, WORD x, WORD y, WORD height)
 
     SetDrMd(rp, JAM1);
     if (isCompact(height))
-        BltTemplate((PLANEPTR)((UBYTE *)chipCompact +
+        BltTemplate((PLANEPTR)((UBYTE *)chipTime +
                                index * COMPACT_H * 8),
                     0, 8, rp, x, y, COMPACT_W, COMPACT_H);
     else if (isLarge(height))
-        BltTemplate((PLANEPTR)((UBYTE *)chipLarge + index * LARGE_H * 8),
+        BltTemplate((PLANEPTR)((UBYTE *)chipTime + index * LARGE_H * 8),
                     0, 8,
                     rp, x, y, LARGE_W, LARGE_H);
     else

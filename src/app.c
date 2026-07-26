@@ -15,6 +15,20 @@
 #define TICK_SECONDS 0L
 #define TICK_MICROS  200000UL
 
+static BOOL darkBackgroundFor(const struct ClockTime *time,
+                              const struct AppConfig *config,
+                              ULONG startMinute)
+{
+    ULONG phase;
+
+    if (config->ac_InvertMinutes == 0)
+        return config->ac_StartDark;
+
+    phase = ((time->ct_AbsoluteMinute - startMinute) /
+             config->ac_InvertMinutes) & 1UL;
+    return (BOOL)(config->ac_StartDark ^ (phase != 0));
+}
+
 int AppMain(const struct AppConfig *config)
 {
     struct Window         *win;
@@ -26,6 +40,7 @@ int AppMain(const struct AppConfig *config)
     char                   dateText[CLOCK_DATE_LEN];
     ULONG                  winSig;
     ULONG                  timerSig;
+    ULONG                  paletteStartMinute;
     BOOL                   done;
 
     win = OpenAppWindow();
@@ -38,7 +53,7 @@ int AppMain(const struct AppConfig *config)
         return 20;
     }
 
-    if (!RenderInit(&render, win))
+    if (!RenderInit(&render, win, config->ac_ShowSeconds))
     {
         closeTimer(&timer);
         CloseAppWindow(win);
@@ -47,9 +62,11 @@ int AppMain(const struct AppConfig *config)
 
     /* Paint the initial state right away, don't wait for the first tick */
     ClockNow(&previous);
+    paletteStartMinute = previous.ct_AbsoluteMinute;
     ClockFormatTime(&previous, timeText, config->ac_ShowSeconds);
     ClockFormatDate(&previous, dateText);
-    RenderClock(&render, timeText, dateText, config->ac_ShowSeconds);
+    RenderClock(&render, timeText, dateText, config->ac_ShowSeconds,
+                darkBackgroundFor(&previous, config, paletteStartMinute));
 
     winSig   = 1L << win->UserPort->mp_SigBit;
     timerSig = 1L << timer.tc_Port->mp_SigBit;
@@ -73,7 +90,9 @@ int AppMain(const struct AppConfig *config)
                 ClockFormatTime(&current, timeText, config->ac_ShowSeconds);
                 ClockFormatDate(&current, dateText);
                 RenderClock(&render, timeText, dateText,
-                            config->ac_ShowSeconds);
+                            config->ac_ShowSeconds,
+                            darkBackgroundFor(&current, config,
+                                              paletteStartMinute));
                 previous = current;
             }
 

@@ -68,6 +68,8 @@ void ClockNow(struct ClockTime *ct)
     ct->ct_Hour = (UWORD)(ds.ds_Minute / 60);
     ct->ct_Min  = (UWORD)(ds.ds_Minute % 60);
     ct->ct_Sec  = (UWORD)(ds.ds_Tick / TICKS_PER_SECOND);
+    ct->ct_AbsoluteMinute =
+        (ULONG)ds.ds_Days * 1440UL + (ULONG)ds.ds_Minute;
 }
 
 /* Writes 'value' as 'digits' decimal characters, zero-padded, no NUL */

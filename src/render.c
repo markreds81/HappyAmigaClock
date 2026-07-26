@@ -14,6 +14,37 @@ static void copyStr(char *dst, const char *src)
         ;
 }
 
+static void setRGB4Value(struct ViewPort *vp, WORD pen, UWORD rgb)
+{
+    SetRGB4(vp, pen, (rgb >> 8) & 0x0f, (rgb >> 4) & 0x0f, rgb & 0x0f);
+}
+
+/*
+ * Swapping only pens 0 and 1 reverses every clock pixel instantly, without
+ * touching the bitmap. The rest of the Workbench palette is left intact.
+ */
+static void setClockPalette(struct RenderContext *rc, BOOL darkBackground)
+{
+    if (!rc->rc_HasSavedPalette ||
+        (rc->rc_HasClockPalette &&
+         rc->rc_DarkBackground == darkBackground))
+        return;
+
+    if (darkBackground)
+    {
+        SetRGB4(rc->rc_ViewPort, 0, 0, 0, 0);
+        SetRGB4(rc->rc_ViewPort, 1, 15, 15, 15);
+    }
+    else
+    {
+        SetRGB4(rc->rc_ViewPort, 0, 15, 15, 15);
+        SetRGB4(rc->rc_ViewPort, 1, 0, 0, 0);
+    }
+
+    rc->rc_DarkBackground = darkBackground;
+    rc->rc_HasClockPalette = TRUE;
+}
+
 /*
  * Erases and redraws only the characters where 'newText' differs from
  * 'prevText' (both assumed same length - true here, since the clock's
@@ -46,7 +77,8 @@ static void redrawChangedChars(struct RastPort *rp, const char *prevText, const 
     }
 }
 
-BOOL RenderInit(struct RenderContext *rc, struct Window *win)
+BOOL RenderInit(struct RenderContext *rc, struct Window *win,
+                BOOL showSeconds)
 {
     struct RastPort *rp = win->RPort;
 
@@ -56,19 +88,42 @@ BOOL RenderInit(struct RenderContext *rc, struct Window *win)
     rc->rc_PrevWidth   = 0;
     rc->rc_PrevHeight  = 0;
     rc->rc_HasPrev     = FALSE;
+    rc->rc_ViewPort    = &win->WScreen->ViewPort;
+    rc->rc_HasSavedPalette = FALSE;
+    rc->rc_HasClockPalette = FALSE;
+
+    if (rc->rc_ViewPort->ColorMap &&
+        rc->rc_ViewPort->ColorMap->Count >= 2 &&
+        rc->rc_ViewPort->ColorMap->ColorTable)
+    {
+        UWORD *colors =
+            (UWORD *)rc->rc_ViewPort->ColorMap->ColorTable;
+
+        rc->rc_SavedColor0 = colors[0];
+        rc->rc_SavedColor1 = colors[1];
+        rc->rc_HasSavedPalette = TRUE;
+    }
 
     SetBPen(rp, 0);
+    SetAPen(rp, 0);
+    RectFill(rp, 0, 0, win->Width - 1, win->Height - 1);
 
-    return FontInit();
+    return FontInit(showSeconds);
 }
 
 void RenderExit(struct RenderContext *rc)
 {
+    if (rc->rc_HasSavedPalette)
+    {
+        setRGB4Value(rc->rc_ViewPort, 0, rc->rc_SavedColor0);
+        setRGB4Value(rc->rc_ViewPort, 1, rc->rc_SavedColor1);
+    }
+
     FontExit();
 }
 
 void RenderClock(struct RenderContext *rc, const char *time, const char *date,
-                 BOOL showSeconds)
+                 BOOL showSeconds, BOOL darkBackground)
 {
     struct RastPort *rp = rc->rc_Window->RPort;
     WORD screenHeight = rc->rc_Window->Height;
@@ -89,6 +144,8 @@ void RenderClock(struct RenderContext *rc, const char *time, const char *date,
                        rc->rc_PrevTimeX == timeX && rc->rc_PrevDateX == dateX &&
                        rc->rc_PrevLineY == blockY && rc->rc_PrevDateY == dateY &&
                        rc->rc_PrevTimeHeight == timeHeight && rc->rc_PrevDateHeight == dateHeight;
+
+    setClockPalette(rc, darkBackground);
 
     /* Sync to the vertical blank so the (now small) update lands entirely
        within the blanking interval instead of tearing across a frame

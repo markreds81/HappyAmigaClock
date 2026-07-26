@@ -3,10 +3,14 @@
 extern struct Library *IconBase;
 extern struct DosLibrary *DOSBase;
 
-#define ARG_TEMPLATE "SECONDS/K"
+#define ARG_TEMPLATE "SECONDS/K,INVERT/K/N,MODE/K"
 #define ARG_SECONDS 0
-#define ARG_COUNT 1
+#define ARG_INVERT 1
+#define ARG_MODE 2
+#define ARG_COUNT 3
 #define READARGS_VERSION 36
+#define DEFAULT_INVERT_MINUTES 1UL //720UL
+#define MAX_INVERT_MINUTES 65535UL
 
 static BOOL parseYesNo(STRPTR value, BOOL *result)
 {
@@ -26,6 +30,45 @@ static BOOL parseYesNo(STRPTR value, BOOL *result)
         return TRUE;
     }
 
+    return FALSE;
+}
+
+static BOOL parseMinutes(STRPTR value, ULONG *result)
+{
+    ULONG number = 0;
+
+    if (!value || *value == '\0')
+        return FALSE;
+
+    while (*value)
+    {
+        ULONG digit;
+
+        if (*value < '0' || *value > '9')
+            return FALSE;
+
+        digit = (ULONG)(*value++ - '0');
+        if (number > (MAX_INVERT_MINUTES - digit) / 10)
+            return FALSE;
+        number = number * 10 + digit;
+    }
+
+    *result = number;
+    return TRUE;
+}
+
+static BOOL parseMode(STRPTR value, BOOL *startDark)
+{
+    if (MatchToolValue(value, "LIGHT"))
+    {
+        *startDark = FALSE;
+        return TRUE;
+    }
+    if (MatchToolValue(value, "DARK"))
+    {
+        *startDark = TRUE;
+        return TRUE;
+    }
     return FALSE;
 }
 
@@ -54,6 +97,20 @@ static BOOL loadShellConfig(struct AppConfig *config)
         valid = parseYesNo((STRPTR)options[ARG_SECONDS],
                            &config->ac_ShowSeconds);
 
+    if (valid && options[ARG_INVERT] != 0)
+    {
+        LONG minutes = *(LONG *)options[ARG_INVERT];
+
+        if (minutes < 0 || (ULONG)minutes > MAX_INVERT_MINUTES)
+            valid = FALSE;
+        else
+            config->ac_InvertMinutes = (ULONG)minutes;
+    }
+
+    if (valid && options[ARG_MODE] != 0)
+        valid = parseMode((STRPTR)options[ARG_MODE],
+                          &config->ac_StartDark);
+
     FreeArgs(parsed);
     return valid;
 }
@@ -80,6 +137,16 @@ static BOOL loadWorkbenchConfig(struct AppConfig *config,
                                     "SECONDS");
         if (value)
             valid = parseYesNo(value, &config->ac_ShowSeconds);
+
+        value = (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes,
+                                    "INVERT");
+        if (valid && value)
+            valid = parseMinutes(value, &config->ac_InvertMinutes);
+
+        value = (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes,
+                                    "MODE");
+        if (valid && value)
+            valid = parseMode(value, &config->ac_StartDark);
         FreeDiskObject(icon);
     }
 
@@ -90,6 +157,8 @@ static BOOL loadWorkbenchConfig(struct AppConfig *config,
 BOOL ConfigLoad(struct AppConfig *config, int argc, char **argv)
 {
     config->ac_ShowSeconds = TRUE;
+    config->ac_InvertMinutes = DEFAULT_INVERT_MINUTES;
+    config->ac_StartDark = FALSE;
 
     if (argc == 0)
         return loadWorkbenchConfig(config, (struct WBStartup *)argv);
