@@ -9,6 +9,12 @@ Il progetto prende ispirazione da
 progettata appositamente per sfruttare le API di AmigaOS e le
 caratteristiche hardware del Commodore Amiga.
 
+Il progetto è servito anche come palestra per prendere dimestichezza con
+la cross-compilazione e con tecniche di sviluppo moderne, compreso
+l'utilizzo dell'intelligenza artificiale, applicate a un ambiente di
+sviluppo che ha come target una piattaforma hardware e software di oltre
+trent'anni fa.
+
 Versione corrente: **1.0** (`26.07.2026`).
 
 Mostra l'ora e la data al centro dello schermo Workbench con un font
@@ -24,13 +30,14 @@ Caratteristiche tecniche principali:
 - modalità analogica a tutto schermo;
 - giorno della settimana abbreviato sulla riga della data;
 - separatore lampeggiante nel formato senza secondi;
-- inversione automatica bianco/nero ogni 12 ore;
+- inversione automatica bianco/nero secondo un periodo di tempo prestabilito;
 - puntatore del mouse nascosto dopo 10 secondi di inattività;
 - nome e versione mostrati in basso finché il puntatore è visibile;
 - aggiornamento dei soli caratteri modificati;
 - uscita con un click sinistro, tramite Esc o, da Shell, con Ctrl+C;
 - bitmap del font conservate in CHIP RAM e accessibili direttamente al
   blitter.
+- segnale orario acustico al cambio dell'ora
 
 L'eseguibile contiene il tag standard:
 
