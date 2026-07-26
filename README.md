@@ -36,8 +36,8 @@ La versione può quindi essere interrogata con il comando AmigaDOS
 
 ## Configurazione
 
-Le opzioni `SECONDS`, `INVERT` e `MODE` controllano il formato e
-l'alternanza dei colori.
+Le opzioni `SECONDS`, `INVERT`, `MODE` e `DATEALWAYS` controllano il
+formato, l'alternanza dei colori e la visibilità della data.
 
 | Valore | Risultato |
 | --- | --- |
@@ -62,13 +62,22 @@ viene avviato il programma e il cambio avviene sempre al passaggio a un
 nuovo minuto. Con `INVERT=0` l'inversione è disabilitata e la modalità
 scelta rimane invariata.
 
+`DATEALWAYS=YES|NO` stabilisce il comportamento della data:
+
+| Valore | Risultato |
+| --- | --- |
+| `DATEALWAYS=NO` | Nasconde la data dopo 10 secondi di inattività e la ripristina al movimento del mouse |
+| `DATEALWAYS=YES` | Mantiene la data sempre visibile |
+
+Il valore predefinito è `DATEALWAYS=NO`.
+
 ### Avvio dalla Shell
 
 Su AmigaOS 2.0 o successivo gli argomenti vengono analizzati con
 `ReadArgs()`:
 
 ```text
-HappyAmigaClock SECONDS=NO INVERT=60 MODE=DARK
+HappyAmigaClock SECONDS=NO INVERT=60 MODE=DARK DATEALWAYS=YES
 ```
 
 `ReadArgs()` non è disponibile su Kickstart 1.3. In quel caso il programma
@@ -83,6 +92,7 @@ Aprire la finestra delle informazioni dell'icona e aggiungere ai ToolTypes:
 SECONDS=NO
 INVERT=60
 MODE=DARK
+DATEALWAYS=YES
 ```
 
 I ToolTypes vengono letti tramite `icon.library` e `FindToolType()`.

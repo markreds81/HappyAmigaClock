@@ -99,6 +99,8 @@ int AppMain(const struct AppConfig *config)
                     {
                         pointerHidden = TRUE;
                         RenderSetInfoVisible(&render, FALSE);
+                        if (!config->ac_DateAlwaysVisible)
+                            RenderSetDateVisible(&render, FALSE);
                     }
                     pointerIdleTicks = POINTER_HIDE_TICKS;
                 }
@@ -135,6 +137,8 @@ int AppMain(const struct AppConfig *config)
                     WindowShowPointer(win);
                     pointerHidden = FALSE;
                     RenderSetInfoVisible(&render, TRUE);
+                    if (!config->ac_DateAlwaysVisible)
+                        RenderSetDateVisible(&render, TRUE);
                 }
             }
         }

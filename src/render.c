@@ -102,6 +102,7 @@ BOOL RenderInit(struct RenderContext *rc, struct Window *win,
     rc->rc_ViewPort    = &win->WScreen->ViewPort;
     rc->rc_HasSavedPalette = FALSE;
     rc->rc_HasClockPalette = FALSE;
+    rc->rc_DateVisible = TRUE;
 
     if (rc->rc_ViewPort->ColorMap &&
         rc->rc_ViewPort->ColorMap->Count >= 2 &&
@@ -171,7 +172,9 @@ void RenderClock(struct RenderContext *rc, const char *time, const char *date,
     if (sameLayout)
     {
         redrawChangedChars(rp, rc->rc_PrevTime, time, timeX, timeY, timeHeight);
-        redrawChangedChars(rp, rc->rc_PrevDate, date, dateX, dateY,  dateHeight);
+        if (rc->rc_DateVisible)
+            redrawChangedChars(rp, rc->rc_PrevDate, date, dateX, dateY,
+                               dateHeight);
     }
     else
     {
@@ -191,7 +194,8 @@ void RenderClock(struct RenderContext *rc, const char *time, const char *date,
 
         SetAPen(rp, 1);
         FontDrawString(rp, time, timeX, timeY, timeHeight);
-        FontDrawString(rp, date, dateX, dateY,  dateHeight);
+        if (rc->rc_DateVisible)
+            FontDrawString(rp, date, dateX, dateY, dateHeight);
     }
 
     copyStr(rc->rc_PrevTime, time);
@@ -233,4 +237,32 @@ void RenderSetInfoVisible(struct RenderContext *rc, BOOL visible)
         SetAPen(rp, 0);
         RectFill(rp, x, y, x + width - 1, y + font->tf_YSize - 1);
     }
+}
+
+void RenderSetDateVisible(struct RenderContext *rc, BOOL visible)
+{
+    struct RastPort *rp = rc->rc_Window->RPort;
+    WORD width;
+
+    if (!rc->rc_HasPrev || rc->rc_DateVisible == visible)
+        return;
+
+    width = FontStringWidth(rc->rc_PrevDate, rc->rc_PrevDateHeight);
+    WaitTOF();
+
+    if (visible)
+    {
+        SetAPen(rp, 1);
+        FontDrawString(rp, rc->rc_PrevDate, rc->rc_PrevDateX,
+                       rc->rc_PrevDateY, rc->rc_PrevDateHeight);
+    }
+    else
+    {
+        SetAPen(rp, 0);
+        RectFill(rp, rc->rc_PrevDateX, rc->rc_PrevDateY,
+                 rc->rc_PrevDateX + width,
+                 rc->rc_PrevDateY + rc->rc_PrevDateHeight);
+    }
+
+    rc->rc_DateVisible = visible;
 }

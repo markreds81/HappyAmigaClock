@@ -3,11 +3,12 @@
 extern struct Library *IconBase;
 extern struct DosLibrary *DOSBase;
 
-#define ARG_TEMPLATE "SECONDS/K,INVERT/K/N,MODE/K"
+#define ARG_TEMPLATE "SECONDS/K,INVERT/K/N,MODE/K,DATEALWAYS/K"
 #define ARG_SECONDS 0
 #define ARG_INVERT 1
 #define ARG_MODE 2
-#define ARG_COUNT 3
+#define ARG_DATE_ALWAYS 3
+#define ARG_COUNT 4
 #define READARGS_VERSION 36
 #define DEFAULT_INVERT_MINUTES 720UL
 #define MAX_INVERT_MINUTES 65535UL
@@ -111,6 +112,10 @@ static BOOL loadShellConfig(struct AppConfig *config)
         valid = parseMode((STRPTR)options[ARG_MODE],
                           &config->ac_StartDark);
 
+    if (valid && options[ARG_DATE_ALWAYS] != 0)
+        valid = parseYesNo((STRPTR)options[ARG_DATE_ALWAYS],
+                           &config->ac_DateAlwaysVisible);
+
     FreeArgs(parsed);
     return valid;
 }
@@ -147,6 +152,11 @@ static BOOL loadWorkbenchConfig(struct AppConfig *config,
                                     "MODE");
         if (valid && value)
             valid = parseMode(value, &config->ac_StartDark);
+
+        value = (STRPTR)FindToolType((CONST_STRPTR *)icon->do_ToolTypes,
+                                    "DATEALWAYS");
+        if (valid && value)
+            valid = parseYesNo(value, &config->ac_DateAlwaysVisible);
         FreeDiskObject(icon);
     }
 
@@ -159,6 +169,7 @@ BOOL ConfigLoad(struct AppConfig *config, int argc, char **argv)
     config->ac_ShowSeconds = TRUE;
     config->ac_InvertMinutes = DEFAULT_INVERT_MINUTES;
     config->ac_StartDark = FALSE;
+    config->ac_DateAlwaysVisible = FALSE;
 
     if (argc == 0)
         return loadWorkbenchConfig(config, (struct WBStartup *)argv);

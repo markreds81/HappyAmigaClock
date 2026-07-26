@@ -35,6 +35,7 @@ struct RenderContext
     BOOL              rc_HasSavedPalette;
     BOOL              rc_DarkBackground;
     BOOL              rc_HasClockPalette;
+    BOOL              rc_DateVisible;
 };
 
 /*
@@ -56,5 +57,8 @@ void RenderClock(struct RenderContext *rc, const char *time, const char *date,
 
 /* Shows or erases the application name/version in the system font. */
 void RenderSetInfoVisible(struct RenderContext *rc, BOOL visible);
+
+/* Shows or erases the date without disturbing the centered time. */
+void RenderSetDateVisible(struct RenderContext *rc, BOOL visible);
 
 #endif /* RENDER_H */
