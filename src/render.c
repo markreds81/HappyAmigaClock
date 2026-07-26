@@ -300,7 +300,8 @@ void RenderDigitalFlipFrame(struct RenderContext *rc, const char *time,
     WORD width = FontStringWidth(time, height);
     WORD x = (rc->rc_Window->Width - width) / 2;
     WORD y = (rc->rc_Window->Height - height) / 2;
-    WORD visibleRows;
+    WORD topRows = height / 2;
+    WORD bottomRows = height - topRows;
     WORD cx = 0;
     const char *oldText = rc->rc_PrevTime;
     const char *newText = time;
@@ -308,11 +309,6 @@ void RenderDigitalFlipFrame(struct RenderContext *rc, const char *time,
     if (!rc->rc_HasPrev || !rc->rc_TimeBufferReady || rc->rc_PrevTimeX != x ||
         rc->rc_PrevLineY != y || rc->rc_PrevTimeHeight != height)
         return;
-
-    if (frame <= RENDER_FLIP_HALF_FRAME)
-        visibleRows = height - (height * frame) / (RENDER_FLIP_HALF_FRAME * 2);
-    else
-        visibleRows = (height * (frame - 1)) / (RENDER_FLIP_HALF_FRAME * 2);
 
     clearTimeBuffer(rc);
 
@@ -323,10 +319,45 @@ void RenderDigitalFlipFrame(struct RenderContext *rc, const char *time,
         if (*oldText != *newText && *oldText >= '0' && *oldText <= '9' &&
             *newText >= '0' && *newText <= '9')
         {
+            WORD flapRows;
+
             SetAPen(rp, 1);
-            FontDrawCharRows(
-                rp, frame <= RENDER_FLIP_HALF_FRAME ? *oldText : *newText, cx,
-                0, height, 0, visibleRows);
+
+            /*
+             * The incoming top is revealed behind the shrinking old flap.
+             * The incoming bottom flap then expands over the old bottom.
+             */
+            FontDrawCharRows(rp, *newText, cx, 0, height, 0, topRows);
+            FontDrawCharRows(rp, *oldText, cx, 0, height, topRows, bottomRows);
+
+            if (frame <= RENDER_FLIP_HALF_FRAME)
+            {
+                flapRows = (topRows * (RENDER_FLIP_HALF_FRAME - frame)) /
+                           RENDER_FLIP_HALF_FRAME;
+                if (flapRows > 0)
+                {
+                    SetAPen(rp, 0);
+                    RectFill(rp, cx, topRows - flapRows, cx + advance - 1,
+                             topRows - 1);
+                    SetAPen(rp, 1);
+                    FontDrawCharScaledRows(rp, *oldText, cx, topRows - flapRows,
+                                           height, 0, topRows, flapRows);
+                }
+            }
+            else
+            {
+                flapRows = (bottomRows * (frame - RENDER_FLIP_HALF_FRAME)) /
+                           RENDER_FLIP_HALF_FRAME;
+                if (flapRows > 0)
+                {
+                    SetAPen(rp, 0);
+                    RectFill(rp, cx, topRows, cx + advance - 1,
+                             topRows + flapRows - 1);
+                    SetAPen(rp, 1);
+                    FontDrawCharScaledRows(rp, *newText, cx, topRows, height,
+                                           topRows, bottomRows, flapRows);
+                }
+            }
 
             /* The bright centre seam sells the mechanical hinge effect. */
             Move(rp, cx, height / 2);

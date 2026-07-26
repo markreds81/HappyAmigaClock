@@ -179,6 +179,76 @@ void FontDrawCharRows(struct RastPort *rp, char c, WORD x, WORD y, WORD height,
         0, rowBytes, rp, x, y + firstRow, width, rowCount);
 }
 
+void FontDrawCharScaledRows(struct RastPort *rp, char c, WORD x, WORD destY,
+                            WORD height, WORD firstRow, WORD sourceRows,
+                            WORD destRows)
+{
+    BOOL small = !isCompact(height) && !isLarge(height);
+    WORD index = glyphIndex(c, small ? dateGlyphChars : timeGlyphChars);
+    WORD glyphHeight;
+    WORD rowBytes;
+    WORD width;
+    UBYTE *bitmap;
+    WORD sourceOffset = 0;
+    WORD error = 0;
+    WORD row;
+
+    if (index < 0 || firstRow < 0 || sourceRows <= 0 || destRows <= 0) return;
+
+    if (isCompact(height))
+    {
+        glyphHeight = FONT_COMPACT_HEIGHT;
+        rowBytes = FONT_COMPACT_ROW_BYTES;
+        width = FONT_COMPACT_WIDTH;
+        bitmap = (UBYTE *)chipTime;
+    }
+    else if (isLarge(height))
+    {
+        glyphHeight = FONT_LARGE_HEIGHT;
+        rowBytes = FONT_LARGE_ROW_BYTES;
+        width = FONT_LARGE_WIDTH;
+        bitmap = (UBYTE *)chipTime;
+    }
+    else
+    {
+        glyphHeight = FONT_SMALL_HEIGHT;
+        rowBytes = FONT_SMALL_ROW_BYTES;
+        width = FONT_SMALL_WIDTH;
+        bitmap = (UBYTE *)chipSmall;
+    }
+
+    if (firstRow >= glyphHeight) return;
+    if (firstRow + sourceRows > glyphHeight)
+        sourceRows = glyphHeight - firstRow;
+    if (destRows > sourceRows) destRows = sourceRows;
+
+    SetDrMd(rp, JAM1);
+    if (destRows == sourceRows)
+    {
+        BltTemplate((PLANEPTR)(bitmap + ((LONG)index * glyphHeight + firstRow) *
+                                            rowBytes),
+                    0, rowBytes, rp, x, destY, width, sourceRows);
+        return;
+    }
+
+    for (row = 0; row < destRows; row++)
+    {
+        WORD sourceRow = firstRow + sourceOffset;
+
+        BltTemplate(
+            (PLANEPTR)(bitmap +
+                       ((LONG)index * glyphHeight + sourceRow) * rowBytes),
+            0, rowBytes, rp, x, destY + row, width, 1);
+
+        error += sourceRows;
+        while (error >= destRows)
+        {
+            sourceOffset++;
+            error -= destRows;
+        }
+    }
+}
+
 void FontDrawChar(struct RastPort *rp, char c, WORD x, WORD y, WORD height)
 {
     FontDrawCharRows(rp, c, x, y, height, 0, height);

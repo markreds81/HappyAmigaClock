@@ -54,6 +54,15 @@ void FontDrawChar(struct RastPort *rp, char c, WORD x, WORD y, WORD height);
 void FontDrawCharRows(struct RastPort *rp, char c, WORD x, WORD y, WORD height,
                       WORD firstRow, WORD rowCount);
 
+/*
+ * Vertically compresses a group of source rows into 'destRows' rows. Each
+ * selected row is transferred by the blitter; the CPU only advances the
+ * integer source-row mapping.
+ */
+void FontDrawCharScaledRows(struct RastPort *rp, char c, WORD x, WORD destY,
+                            WORD height, WORD firstRow, WORD sourceRows,
+                            WORD destRows);
+
 /* Draws 's' with its top-left corner at (x, y), 'height' pixels tall,
    using the RastPort's current foreground pen (set via SetAPen()). */
 void FontDrawString(struct RastPort *rp, const char *s, WORD x, WORD y,
