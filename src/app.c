@@ -62,7 +62,10 @@ int AppMain(const struct AppConfig *config)
         return 20;
     }
 
-    audioReady = config->ac_Chime && AudioInit(&audio);
+    audioReady =
+        (config->ac_Chime || (config->ac_Flip && config->ac_FlipSound)) &&
+        AudioInit(&audio, config->ac_Chime,
+                  (BOOL)(config->ac_Flip && config->ac_FlipSound));
 
     /* Paint the initial state right away, don't wait for the first tick */
     ClockNow(&previous);
@@ -118,6 +121,9 @@ int AppMain(const struct AppConfig *config)
             if (flipActive)
             {
                 flipFrame++;
+                if (audioReady && config->ac_FlipSound &&
+                    flipFrame == RENDER_FLIP_HALF_FRAME + 2)
+                    AudioPlayFlip(&audio);
                 if (flipFrame < RENDER_FLIP_LAST_FRAME)
                     RenderDigitalFlipFrame(
                         &render, timeText, config->ac_ShowSeconds,

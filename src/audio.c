@@ -10,6 +10,11 @@
 #define SECOND_NOTE_SAMPLES 960
 #define CHIME_SAMPLES (FIRST_NOTE_SAMPLES + PAUSE_SAMPLES + SECOND_NOTE_SAMPLES)
 #define FADE_SAMPLES 60
+#define FLIP_FIRST_SAMPLES 105
+#define FLIP_PAUSE_SAMPLES 30
+#define FLIP_SECOND_SAMPLES 165
+#define FLIP_SAMPLES                                                           \
+    (FLIP_FIRST_SAMPLES + FLIP_PAUSE_SAMPLES + FLIP_SECOND_SAMPLES)
 
 static BYTE triangleSample(ULONG phase)
 {
@@ -55,15 +60,60 @@ static void generateChime(UBYTE *sample)
                  SECOND_NOTE_SAMPLES, SECOND_NOTE_HZ);
 }
 
-BOOL AudioInit(struct AudioContext *audio)
+static UWORD noiseStep(UWORD noise)
+{
+    if (noise & 1) return (UWORD)((noise >> 1) ^ 0xb400);
+    return noise >> 1;
+}
+
+static UWORD generateNoiseBurst(UBYTE *dst, UWORD length, WORD volume,
+                                UWORD noise)
+{
+    UWORD i;
+
+    for (i = 0; i < length; i++)
+    {
+        WORD envelope = (WORD)(((ULONG)(length - i) * volume) / length);
+        WORD value;
+
+        noise = noiseStep(noise);
+        value = ((WORD)(BYTE)(noise & 0xff) * envelope) / 127;
+        dst[i] = (UBYTE)(BYTE)value;
+    }
+
+    return noise;
+}
+
+static void generateFlipSound(UBYTE *sample)
+{
+    UWORD noise;
+    UWORD i;
+
+    noise = generateNoiseBurst(sample, FLIP_FIRST_SAMPLES, 34, 0xace1);
+
+    for (i = 0; i < FLIP_PAUSE_SAMPLES; i++)
+        sample[FLIP_FIRST_SAMPLES + i] = 0;
+
+    generateNoiseBurst(sample + FLIP_FIRST_SAMPLES + FLIP_PAUSE_SAMPLES,
+                       FLIP_SECOND_SAMPLES, 52, noise);
+}
+
+BOOL AudioInit(struct AudioContext *audio, BOOL chime, BOOL flipSound)
 {
     static UBYTE channelPreference[4] = {1, 2, 4, 8};
+    UBYTE *nextSample;
 
     audio->au_Port = NULL;
     audio->au_Request = NULL;
-    audio->au_Sample = NULL;
+    audio->au_Samples = NULL;
+    audio->au_ChimeSample = NULL;
+    audio->au_FlipSample = NULL;
+    audio->au_SampleBytes =
+        (chime ? CHIME_SAMPLES : 0) + (flipSound ? FLIP_SAMPLES : 0);
     audio->au_Open = FALSE;
     audio->au_Running = FALSE;
+
+    if (audio->au_SampleBytes == 0) return FALSE;
 
     audio->au_Port = CreatePort(NULL, 0);
     if (!audio->au_Port) return FALSE;
@@ -76,14 +126,25 @@ BOOL AudioInit(struct AudioContext *audio)
         return FALSE;
     }
 
-    audio->au_Sample = (UBYTE *)AllocMem(CHIME_SAMPLES, MEMF_CHIP);
-    if (!audio->au_Sample)
+    audio->au_Samples = (UBYTE *)AllocMem(audio->au_SampleBytes, MEMF_CHIP);
+    if (!audio->au_Samples)
     {
         AudioExit(audio);
         return FALSE;
     }
 
-    generateChime(audio->au_Sample);
+    nextSample = audio->au_Samples;
+    if (chime)
+    {
+        audio->au_ChimeSample = nextSample;
+        generateChime(nextSample);
+        nextSample += CHIME_SAMPLES;
+    }
+    if (flipSound)
+    {
+        audio->au_FlipSample = nextSample;
+        generateFlipSound(nextSample);
+    }
 
     audio->au_Request->ioa_Data = channelPreference;
     audio->au_Request->ioa_Length = sizeof(channelPreference);
@@ -122,10 +183,13 @@ void AudioExit(struct AudioContext *audio)
         audio->au_Request = NULL;
     }
 
-    if (audio->au_Sample)
+    if (audio->au_Samples)
     {
-        FreeMem(audio->au_Sample, CHIME_SAMPLES);
-        audio->au_Sample = NULL;
+        FreeMem(audio->au_Samples, audio->au_SampleBytes);
+        audio->au_Samples = NULL;
+        audio->au_ChimeSample = NULL;
+        audio->au_FlipSample = NULL;
+        audio->au_SampleBytes = 0;
     }
 
     if (audio->au_Port)
@@ -135,9 +199,9 @@ void AudioExit(struct AudioContext *audio)
     }
 }
 
-void AudioPlayChime(struct AudioContext *audio)
+static void playSample(struct AudioContext *audio, UBYTE *sample, ULONG length)
 {
-    if (!audio->au_Request) return;
+    if (!audio->au_Request || !sample) return;
 
     if (audio->au_Running)
     {
@@ -149,8 +213,8 @@ void AudioPlayChime(struct AudioContext *audio)
 
     audio->au_Request->ioa_Request.io_Command = CMD_WRITE;
     audio->au_Request->ioa_Request.io_Flags = ADIOF_PERVOL;
-    audio->au_Request->ioa_Data = audio->au_Sample;
-    audio->au_Request->ioa_Length = CHIME_SAMPLES;
+    audio->au_Request->ioa_Data = sample;
+    audio->au_Request->ioa_Length = length;
     audio->au_Request->ioa_Period = SAMPLE_PERIOD;
     audio->au_Request->ioa_Volume = 64;
     audio->au_Request->ioa_Cycles = 1;
@@ -162,4 +226,14 @@ void AudioPlayChime(struct AudioContext *audio)
      */
     BeginIO((struct IORequest *)audio->au_Request);
     audio->au_Running = TRUE;
+}
+
+void AudioPlayChime(struct AudioContext *audio)
+{
+    playSample(audio, audio->au_ChimeSample, CHIME_SAMPLES);
+}
+
+void AudioPlayFlip(struct AudioContext *audio)
+{
+    playSample(audio, audio->au_FlipSample, FLIP_SAMPLES);
 }

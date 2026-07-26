@@ -12,13 +12,14 @@ struct AppConfig
     BOOL ac_Chime;
     BOOL ac_Analog;
     BOOL ac_Flip;
+    BOOL ac_FlipSound;
 };
 
 /*
  * Reads SECONDS=YES|NO, INVERT=<minutes>, MODE=LIGHT|DARK and
- * DATEALWAYS=YES|NO, CHIME=YES|NO, ANALOG=YES|NO and FLIP=YES|NO using
- * ReadArgs() from Shell or FindToolType() from the program icon under
- * Workbench.
+ * DATEALWAYS=YES|NO, CHIME=YES|NO, ANALOG=YES|NO, FLIP=YES|NO and
+ * FLIPSOUND=YES|NO using ReadArgs() from Shell or FindToolType() from the
+ * program icon under Workbench.
  * INVERT=0 disables palette alternation and retains MODE.
  */
 BOOL ConfigLoad(struct AppConfig *config, int argc, char **argv);

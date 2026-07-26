@@ -34,7 +34,8 @@ Caratteristiche tecniche principali:
 - puntatore del mouse nascosto dopo 10 secondi di inattività;
 - nome e versione mostrati in basso finché il puntatore è visibile;
 - aggiornamento dei soli caratteri modificati;
-- transizione flip opzionale delle cifre in modalità digitale;
+- transizione flip opzionale delle cifre in modalità digitale, con effetto
+  acustico meccanico facoltativo;
 - uscita con un click sinistro, tramite Esc o, da Shell, con Ctrl+C;
 - bitmap del font conservate in CHIP RAM e accessibili direttamente al
   blitter.
@@ -65,9 +66,9 @@ La versione può quindi essere interrogata con il comando AmigaDOS
 
 ## Configurazione
 
-Le opzioni `SECONDS`, `INVERT`, `MODE`, `DATEALWAYS`, `CHIME`, `ANALOG`
-e `FLIP` controllano il formato, l'alternanza dei colori, la visibilità
-della data, il segnale orario e l'animazione delle cifre.
+Le opzioni `SECONDS`, `INVERT`, `MODE`, `DATEALWAYS`, `CHIME`, `ANALOG`,
+`FLIP` e `FLIPSOUND` controllano il formato, l'alternanza dei colori, la
+visibilità della data, il segnale orario e l'animazione delle cifre.
 
 Per tutte le opzioni `YES|NO` sono accettati anche i valori equivalenti
 `ON|OFF` e `TRUE|FALSE`.
@@ -175,13 +176,34 @@ copiati sullo schermo con un unico blit sincronizzato al vertical
 retrace. Il buffer occupa circa 3,5 KB di CHIP RAM con o senza secondi
 ed è allocato soltanto quando `FLIP=YES`.
 
+### `FLIPSOUND`
+
+Controlla il breve effetto acustico meccanico associato all'animazione.
+
+| Valore | Risultato |
+| --- | --- |
+| `FLIPSOUND=NO` | Non riproduce alcun suono durante il flip |
+| `FLIPSOUND=YES` | Riproduce un doppio “clack” durante la riapertura della cifra |
+
+**Valore predefinito:** `FLIPSOUND=NO`.
+
+L'opzione ha effetto soltanto quando è attivo anche `FLIP=YES`. Il
+campione viene generato all'avvio, occupa 300 byte di CHIP RAM e viene
+riprodotto tramite `audio.device`. Se coincide con il segnale orario,
+il chime ha la precedenza e il clack viene omesso.
+
+Con `SECONDS=YES` l'effetto accompagna ogni cambio di secondo. Con
+`SECONDS=NO` viene riprodotto soltanto al cambio del minuto, quando cambia
+almeno una delle cifre visualizzate; il lampeggio del separatore non
+attiva né l'animazione né il suono.
+
 ### Avvio dalla Shell
 
 Su AmigaOS 2.0 o successivo gli argomenti vengono analizzati con
 `ReadArgs()`:
 
 ```text
-HappyAmigaClock ANALOG=NO FLIP=YES SECONDS=YES INVERT=60 MODE=DARK CHIME=YES
+HappyAmigaClock ANALOG=NO FLIP=YES FLIPSOUND=YES SECONDS=YES INVERT=60 MODE=DARK CHIME=YES
 ```
 
 `ReadArgs()` non è disponibile su Kickstart 1.3. In quel caso il programma
@@ -200,6 +222,7 @@ DATEALWAYS=YES
 CHIME=YES
 ANALOG=YES
 FLIP=YES
+FLIPSOUND=YES
 ```
 
 I ToolTypes vengono letti tramite `icon.library` e `FindToolType()`.
@@ -265,6 +288,14 @@ In questo modo lo schermo non mostra le operazioni intermedie di
 cancellazione e ridisegno. Il costo aggiuntivo riguarda soprattutto la
 composizione fuori schermo; l'aggiornamento visibile rimane un singolo
 blit per fotogramma.
+
+Al sesto fotogramma, quando la parte inferiore nuova ha raggiunto metà
+apertura, può essere avviato il campione `FLIPSOUND`. Il campione contiene
+due brevi burst di rumore con inviluppo decadente ed è riprodotto
+asincronamente da Paula: dopo `BeginIO()` non richiede elaborazione
+continua da parte della CPU. Durata e punto di avvio sono coordinati
+affinché il secondo burst termini insieme agli ultimi fotogrammi
+dell'animazione.
 
 L'orario non viene incrementato contando i fotogrammi. Al termine di ogni
 transizione viene nuovamente confrontato con l'orario di sistema: un
