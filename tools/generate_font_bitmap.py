@@ -10,14 +10,15 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FONT = Path("/Library/Fonts/Roboto_Light.ttf")
 DEFAULT_OUTPUT = ROOT / "src" / "font_bitmap.inc"
-CHARS = "0123456789:/"
+TIME_CHARS = "0123456789:"
+DATE_CHARS = "0123456789/ LUNMAREGIOVDSB"
 SCALE = 4
 
 # The time styles are used by hh:mm and hh:mm:ss; the date has its own style.
 SIZES = (
-    ("compact", 56, 88, "time"),
-    ("large", 44, 72, "time"),
-    ("small", 18, 18, "date"),
+    ("compact", 56, 88, "time", TIME_CHARS),
+    ("large", 44, 72, "time", TIME_CHARS),
+    ("small", 18, 18, "date", DATE_CHARS),
 )
 
 
@@ -79,7 +80,7 @@ def validate_style(label, font_path, face, threshold):
         raise SystemExit(f"{label} threshold must be between 0 and 255")
 
 
-def rasterize(width, height, font_path, face, threshold):
+def rasterize(width, height, chars, font_path, face, threshold):
     """Fit by height with one uniform scale; never stretch the glyph."""
     trial = ImageFont.truetype(str(font_path), 100 * SCALE, index=face)
     probe = ImageDraw.Draw(Image.new("L", (1, 1)))
@@ -92,7 +93,7 @@ def rasterize(width, height, font_path, face, threshold):
     bottom = max(b[3] for b in boxes)
     result = []
 
-    for char in CHARS:
+    for char in chars:
         hi = Image.new("L", (width * SCALE, height * SCALE))
         draw = ImageDraw.Draw(hi)
         advance = draw.textlength(char, font=font)
@@ -147,11 +148,12 @@ def generate(args):
         "*/",
     ]
 
-    for name, width, height, style_name in SIZES:
+    for name, width, height, style_name, chars in SIZES:
         style = styles[style_name]
         rows = rasterize(
             width,
             height,
+            chars,
             style["font"],
             style["face"],
             style["threshold"],
@@ -159,11 +161,12 @@ def generate(args):
         stride = (width + 31) // 32
         lines.extend(
             [
-                f"static const ULONG glyph_{name}[12][{height}][{stride}] =",
+                f"static const ULONG glyph_{name}[{len(chars)}]"
+                f"[{height}][{stride}] =",
                 "{",
             ]
         )
-        for char, encoded in zip(CHARS, rows):
+        for char, encoded in zip(chars, rows):
             lines.append(f"    /* {char} */")
             lines.append("    {")
             for words in encoded:

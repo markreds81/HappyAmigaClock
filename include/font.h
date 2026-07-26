@@ -22,6 +22,8 @@
 #define FONT_SMALL_WIDTH      18
 #define FONT_SMALL_HEIGHT     18
 #define FONT_SMALL_ADVANCE    12
+#define FONT_SMALL_LETTER_ADVANCE 18
+#define FONT_SMALL_SPACE_ADVANCE  8
 #define FONT_SMALL_ROW_BYTES  FONT_ROW_BYTES(FONT_SMALL_WIDTH)
 
 BOOL FontInit(BOOL showSeconds);
@@ -39,7 +41,7 @@ WORD FontStringWidth(const char *s, WORD height);
 /* Horizontal distance, in pixels, from one character's origin to the
    next when drawn 'height' pixels tall. Lets callers address individual
    character cells (e.g. to redraw only the characters that changed). */
-WORD FontCharAdvance(WORD height);
+WORD FontCharAdvance(char c, WORD height);
 
 /* Draws a single character with its top-left corner at (x, y), 'height'
    pixels tall, using the RastPort's current foreground pen. */

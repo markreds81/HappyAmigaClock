@@ -47,10 +47,9 @@ BOOL RenderInit(struct RenderContext *rc, struct Window *win,
 void RenderExit(struct RenderContext *rc);
 
 /*
- * Draws 'time' large and 'date' smaller below it, both centered
- * horizontally as a block in the window using the embedded font (see
- * font.h). Only the area occupied by the previous draw (if any) is
- * erased first.
+ * Draws 'time' large in the centre and 'date' smaller near the top,
+ * both centered horizontally using the embedded font (see font.h).
+ * Only the area occupied by the previous draw (if any) is erased first.
  */
 void RenderClock(struct RenderContext *rc, const char *time, const char *date,
                  BOOL showSeconds, BOOL darkBackground);

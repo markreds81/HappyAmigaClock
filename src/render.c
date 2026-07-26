@@ -2,8 +2,8 @@
 #include "font.h"
 #include "version.h"
 
-/* Time fills most of the screen height; date sits smaller below it. */
-#define LINE_GAP_PERCENT    4
+/* Time stays centered; date is placed near the top edge. */
+#define DATE_TOP_PERCENT    6
 #define INFO_BOTTOM_MARGIN  6
 
 static const char infoText[] = APP_NAME " " APP_VERSION_STRING;
@@ -64,11 +64,12 @@ static void setClockPalette(struct RenderContext *rc, BOOL darkBackground)
 static void redrawChangedChars(struct RastPort *rp, const char *prevText, const char *newText,
                                 WORD x, WORD y, WORD height)
 {
-    WORD advance = FontCharAdvance(height);
     WORD cx = x;
 
     while (*newText)
     {
+        WORD advance = FontCharAdvance(*newText, height);
+
         if (*prevText != *newText)
         {
             /* +1 on the bottom row: glyph coordinates are closed on
@@ -140,19 +141,23 @@ void RenderClock(struct RenderContext *rc, const char *time, const char *date,
     WORD timeHeight = showSeconds ? FONT_LARGE_HEIGHT
                                   : FONT_COMPACT_HEIGHT;
     WORD dateHeight = FONT_SMALL_HEIGHT;
-    WORD lineGap    = (screenHeight * LINE_GAP_PERCENT)    / 100;
     WORD timeWidth  = FontStringWidth(time, timeHeight);
     WORD dateWidth  = FontStringWidth(date, dateHeight);
-    WORD blockWidth  = (timeWidth > dateWidth) ? timeWidth : dateWidth;
-    WORD blockHeight = timeHeight + lineGap + dateHeight;
-    WORD blockX = (rc->rc_Window->Width  - blockWidth)  / 2;
-    WORD blockY = (rc->rc_Window->Height - blockHeight) / 2;
-    WORD timeX  = blockX + (blockWidth - timeWidth) / 2;
-    WORD dateX  = blockX + (blockWidth - dateWidth) / 2;
-    WORD dateY  = blockY + timeHeight + lineGap;
+    WORD timeX  = (rc->rc_Window->Width - timeWidth) / 2;
+    WORD timeY  = (screenHeight - timeHeight) / 2;
+    WORD dateX  = (rc->rc_Window->Width - dateWidth) / 2;
+    WORD dateY  = (screenHeight * DATE_TOP_PERCENT) / 100;
+    WORD blockX = (timeX < dateX) ? timeX : dateX;
+    WORD blockY = (timeY < dateY) ? timeY : dateY;
+    WORD blockRight = ((timeX + timeWidth) > (dateX + dateWidth))
+                    ? timeX + timeWidth : dateX + dateWidth;
+    WORD blockBottom = ((timeY + timeHeight) > (dateY + dateHeight))
+                     ? timeY + timeHeight : dateY + dateHeight;
+    WORD blockWidth = blockRight - blockX;
+    WORD blockHeight = blockBottom - blockY;
     BOOL sameLayout = rc->rc_HasPrev &&
                        rc->rc_PrevTimeX == timeX && rc->rc_PrevDateX == dateX &&
-                       rc->rc_PrevLineY == blockY && rc->rc_PrevDateY == dateY &&
+                       rc->rc_PrevLineY == timeY && rc->rc_PrevDateY == dateY &&
                        rc->rc_PrevTimeHeight == timeHeight && rc->rc_PrevDateHeight == dateHeight;
 
     setClockPalette(rc, darkBackground);
@@ -165,7 +170,7 @@ void RenderClock(struct RenderContext *rc, const char *time, const char *date,
 
     if (sameLayout)
     {
-        redrawChangedChars(rp, rc->rc_PrevTime, time, timeX, blockY, timeHeight);
+        redrawChangedChars(rp, rc->rc_PrevTime, time, timeX, timeY, timeHeight);
         redrawChangedChars(rp, rc->rc_PrevDate, date, dateX, dateY,  dateHeight);
     }
     else
@@ -185,7 +190,7 @@ void RenderClock(struct RenderContext *rc, const char *time, const char *date,
         }
 
         SetAPen(rp, 1);
-        FontDrawString(rp, time, timeX, blockY, timeHeight);
+        FontDrawString(rp, time, timeX, timeY, timeHeight);
         FontDrawString(rp, date, dateX, dateY,  dateHeight);
     }
 
@@ -198,7 +203,7 @@ void RenderClock(struct RenderContext *rc, const char *time, const char *date,
     rc->rc_PrevHeight    = blockHeight;
     rc->rc_PrevTimeX     = timeX;
     rc->rc_PrevDateX     = dateX;
-    rc->rc_PrevLineY     = blockY;
+    rc->rc_PrevLineY     = timeY;
     rc->rc_PrevDateY     = dateY;
     rc->rc_PrevTimeHeight = timeHeight;
     rc->rc_PrevDateHeight = dateHeight;

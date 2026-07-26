@@ -7,6 +7,11 @@ static const UWORD daysInMonth[2][12] =
     { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }  /* leap year   */
 };
 
+static const char weekdayNames[7][4] =
+{
+    "DOM", "LUN", "MAR", "MER", "GIO", "VEN", "SAB"
+};
+
 /* Gregorian leap year rule, implemented locally (no utility.library needed) */
 static BOOL isLeapYear(UWORD year)
 {
@@ -65,6 +70,8 @@ void ClockNow(struct ClockTime *ct)
 
     daysToDate(ds.ds_Days, &ct->ct_Day, &ct->ct_Month, &ct->ct_Year);
 
+    /* 1 January 1978 was a Sunday. */
+    ct->ct_Weekday = (UWORD)(ds.ds_Days % 7);
     ct->ct_Hour = (UWORD)(ds.ds_Minute / 60);
     ct->ct_Min  = (UWORD)(ds.ds_Minute % 60);
     ct->ct_Sec  = (UWORD)(ds.ds_Tick / TICKS_PER_SECOND);
@@ -111,7 +118,12 @@ void ClockFormatTime(const struct ClockTime *ct, char *buffer,
 void ClockFormatDate(const struct ClockTime *ct, char *buffer)
 {
     char *p = buffer;
+    const char *weekday = weekdayNames[ct->ct_Weekday];
 
+    *p++ = *weekday++;
+    *p++ = *weekday++;
+    *p++ = *weekday;
+    *p++ = ' ';
     p = putDigits(p, ct->ct_Day, 2);
     *p++ = '/';
     p = putDigits(p, ct->ct_Month, 2);

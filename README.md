@@ -15,6 +15,7 @@ Caratteristiche principali:
 - compatibilità con Kickstart 1.3;
 - avvio da Shell oppure tramite icona Workbench;
 - visualizzazione opzionale dei secondi;
+- giorno della settimana abbreviato sulla riga della data;
 - separatore lampeggiante nel formato senza secondi;
 - inversione automatica bianco/nero ogni 12 ore;
 - puntatore del mouse nascosto dopo 10 secondi di inattività;
@@ -174,17 +175,19 @@ l'avanzamento desiderato:
 ```c
 #define FONT_ROW_BYTES(width) ((((width) + 31) / 32) * 4)
 
-#define FONT_COMPACT_WIDTH    52
+#define FONT_COMPACT_WIDTH    56
 #define FONT_COMPACT_HEIGHT   88
 #define FONT_COMPACT_ADVANCE  62
 
-#define FONT_LARGE_WIDTH      36
-#define FONT_LARGE_HEIGHT     64
-#define FONT_LARGE_ADVANCE    40
+#define FONT_LARGE_WIDTH      44
+#define FONT_LARGE_HEIGHT     72
+#define FONT_LARGE_ADVANCE    48
 
-#define FONT_SMALL_WIDTH      16
-#define FONT_SMALL_HEIGHT     24
-#define FONT_SMALL_ADVANCE    18
+#define FONT_SMALL_WIDTH      18
+#define FONT_SMALL_HEIGHT     18
+#define FONT_SMALL_ADVANCE    12
+#define FONT_SMALL_LETTER_ADVANCE 18
+#define FONT_SMALL_SPACE_ADVANCE  8
 ```
 
 `font.c` e `render.c` condividono queste definizioni; non è necessario
@@ -207,13 +210,14 @@ La larghezza di una stringa è:
 Per esempio, con le dimensioni attuali:
 
 ```text
-hh:mm:ss = 7 × 40 + 36 = 316 pixel
-hh:mm    = 4 × 62 + 52 = 300 pixel
+hh:mm:ss = 7 × 48 + 44 = 380 pixel
+hh:mm    = 4 × 62 + 56 = 304 pixel
 ```
 
-Entrambi i formati entrano in uno schermo largo 320 pixel. Prima di
-aumentare una dimensione è importante ripetere questo calcolo, altrimenti
-le cifre verranno tagliate ai bordi.
+Prima di aumentare una dimensione è importante confrontare il risultato
+con la larghezza della modalità video usata, altrimenti le cifre verranno
+tagliate ai bordi. La data usa avanzamenti differenti per cifre, lettere
+e spazi, quindi la sua larghezza viene calcolata carattere per carattere.
 
 ### 4. Rigenerare le bitmap
 

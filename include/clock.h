@@ -16,12 +16,13 @@ struct ClockTime
     UWORD ct_Hour;   /* 0..23   */
     UWORD ct_Min;    /* 0..59   */
     UWORD ct_Sec;    /* 0..59   */
+    UWORD ct_Weekday; /* 0=Sunday .. 6=Saturday */
     ULONG ct_AbsoluteMinute; /* minutes since 1 Jan 1978 */
 };
 
 /* Length of the buffers required by ClockFormatTime()/ClockFormatDate() */
 #define CLOCK_TIME_LEN 9  /* "hh:mm:ss" + NUL */
-#define CLOCK_DATE_LEN 11 /* "dd/mm/yyyy" + NUL */
+#define CLOCK_DATE_LEN 15 /* "DDD dd/mm/yyyy" + NUL */
 
 /*
  * Reads the current date and time (via DateStamp()) and fills 'ct'.
@@ -40,7 +41,7 @@ void ClockFormatTime(const struct ClockTime *ct, char *buffer,
                      BOOL showSeconds);
 
 /*
- * Formats 'ct' as "dd/mm/yyyy" into 'buffer'.
+ * Formats 'ct' as an Italian abbreviated weekday plus "dd/mm/yyyy".
  * 'buffer' must be at least CLOCK_DATE_LEN bytes long.
  * Does not depend on DateToStr() or any sprintf-style formatter.
  */

@@ -13,6 +13,8 @@
 static APTR chipTime = NULL;
 static ULONG chipTimeBytes = 0;
 static APTR chipSmall = NULL;
+static const char timeGlyphChars[] = "0123456789:";
+static const char dateGlyphChars[] = "0123456789/ LUNMAREGIOVDSB";
 
 BOOL FontInit(BOOL showSeconds)
 {
@@ -60,14 +62,17 @@ void FontExit(void)
     }
 }
 
-static WORD glyphIndex(char c)
+static WORD glyphIndex(char c, const char *glyphChars)
 {
-    if (c >= '0' && c <= '9')
-        return (WORD)(c - '0');
-    if (c == ':')
-        return 10;
-    if (c == '/')
-        return 11;
+    WORD index = 0;
+
+    while (*glyphChars)
+    {
+        if (*glyphChars++ == c)
+            return index;
+        index++;
+    }
+
     return -1;
 }
 
@@ -94,41 +99,53 @@ WORD FontStringWidth(const char *s, WORD height)
 {
     WORD len = textStrLen(s);
     WORD width;
-    WORD advance;
+    WORD total = 0;
+    const char *p = s;
 
     if (isCompact(height))
     {
         width = FONT_COMPACT_WIDTH;
-        advance = FONT_COMPACT_ADVANCE;
     }
     else if (isLarge(height))
     {
         width = FONT_LARGE_WIDTH;
-        advance = FONT_LARGE_ADVANCE;
     }
     else
     {
         width = FONT_SMALL_WIDTH;
-        advance = FONT_SMALL_ADVANCE;
     }
 
     if (len == 0)
         return 0;
-    return (WORD)((len - 1) * advance + width);
+
+    while (p[1] != '\0')
+    {
+        total += FontCharAdvance(*p, height);
+        p++;
+    }
+
+    return total + width;
 }
 
-WORD FontCharAdvance(WORD height)
+WORD FontCharAdvance(char c, WORD height)
 {
     if (isCompact(height))
         return FONT_COMPACT_ADVANCE;
     if (isLarge(height))
         return FONT_LARGE_ADVANCE;
+
+    if (c >= 'A' && c <= 'Z')
+        return FONT_SMALL_LETTER_ADVANCE;
+    if (c == ' ')
+        return FONT_SMALL_SPACE_ADVANCE;
+
     return FONT_SMALL_ADVANCE;
 }
 
 void FontDrawChar(struct RastPort *rp, char c, WORD x, WORD y, WORD height)
 {
-    WORD index = glyphIndex(c);
+    BOOL small = !isCompact(height) && !isLarge(height);
+    WORD index = glyphIndex(c, small ? dateGlyphChars : timeGlyphChars);
 
     if (index < 0)
         return;
@@ -156,11 +173,11 @@ void FontDrawChar(struct RastPort *rp, char c, WORD x, WORD y, WORD height)
 
 void FontDrawString(struct RastPort *rp, const char *s, WORD x, WORD y, WORD height)
 {
-    WORD advance = FontCharAdvance(height);
-
     while (*s)
     {
-        FontDrawChar(rp, *s++, x, y, height);
-        x += advance;
+        char c = *s++;
+
+        FontDrawChar(rp, c, x, y, height);
+        x += FontCharAdvance(c, height);
     }
 }
