@@ -14,6 +14,7 @@
  */
 #define TICK_SECONDS 0L
 #define TICK_MICROS  200000UL
+#define POINTER_HIDE_TICKS 50
 
 static BOOL darkBackgroundFor(const struct ClockTime *time,
                               const struct AppConfig *config,
@@ -41,6 +42,8 @@ int AppMain(const struct AppConfig *config)
     ULONG                  winSig;
     ULONG                  timerSig;
     ULONG                  paletteStartMinute;
+    UWORD                  pointerIdleTicks;
+    BOOL                   pointerHidden;
     BOOL                   done;
 
     win = OpenAppWindow();
@@ -73,6 +76,8 @@ int AppMain(const struct AppConfig *config)
 
     startTimer(&timer, TICK_SECONDS, TICK_MICROS);
 
+    pointerIdleTicks = 0;
+    pointerHidden = FALSE;
     done = FALSE;
     while (!done)
     {
@@ -83,6 +88,17 @@ int AppMain(const struct AppConfig *config)
         if (sig & timerSig)
         {
             completeTimer(&timer);
+
+            if (!pointerHidden)
+            {
+                pointerIdleTicks++;
+                if (pointerIdleTicks >= POINTER_HIDE_TICKS)
+                {
+                    if (WindowHidePointer(win))
+                        pointerHidden = TRUE;
+                    pointerIdleTicks = POINTER_HIDE_TICKS;
+                }
+            }
 
             ClockNow(&current);
             if (ClockChanged(&current, &previous))
@@ -102,8 +118,20 @@ int AppMain(const struct AppConfig *config)
 
         if (sig & winSig)
         {
-            if (WindowProcessMessages(win))
+            BOOL mouseMoved;
+
+            if (WindowProcessMessages(win, &mouseMoved))
                 done = TRUE;
+
+            if (mouseMoved)
+            {
+                pointerIdleTicks = 0;
+                if (pointerHidden)
+                {
+                    WindowShowPointer(win);
+                    pointerHidden = FALSE;
+                }
+            }
         }
 
         if (sig & SIGBREAKF_CTRL_C)

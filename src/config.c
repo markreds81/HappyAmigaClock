@@ -9,7 +9,7 @@ extern struct DosLibrary *DOSBase;
 #define ARG_MODE 2
 #define ARG_COUNT 3
 #define READARGS_VERSION 36
-#define DEFAULT_INVERT_MINUTES 1UL //720UL
+#define DEFAULT_INVERT_MINUTES 720UL
 #define MAX_INVERT_MINUTES 65535UL
 
 static BOOL parseYesNo(STRPTR value, BOOL *result)

@@ -7,10 +7,16 @@ extern struct IntuitionBase *IntuitionBase;
    IDCMP_VANILLAKEY class only became available on later Kickstarts. */
 #define RAWKEY_ESC 0x45
 
+#define BLANK_POINTER_WORDS 6
+#define BLANK_POINTER_BYTES (BLANK_POINTER_WORDS * sizeof(UWORD))
+
+static UWORD *blankPointer = NULL;
+
 struct Window *OpenAppWindow(void)
 {
     struct NewWindow nw;
     struct Screen *scr;
+    struct Window *win;
 
     /* ActiveScreen is valid as soon as Intuition is up, back to KS 1.3 */
     scr = IntuitionBase->ActiveScreen;
@@ -22,12 +28,12 @@ struct Window *OpenAppWindow(void)
     nw.DetailPen  = 0;
     nw.BlockPen   = 1;
 
-    nw.IDCMPFlags = IDCMP_RAWKEY;
+    nw.IDCMPFlags = IDCMP_RAWKEY | IDCMP_MOUSEMOVE;
 
     /* Borderless: no title bar, no gadgets, sized to cover the whole screen.
        (WFLG_BACKDROP is deliberately avoided: on WBENCHSCREEN it would place
        the window behind Workbench's own backdrop icon window, hiding it.) */
-    nw.Flags = WFLG_BORDERLESS | WFLG_ACTIVATE;
+    nw.Flags = WFLG_BORDERLESS | WFLG_ACTIVATE | WFLG_REPORTMOUSE;
 
     nw.FirstGadget = NULL;
     nw.CheckMark   = NULL;
@@ -43,19 +49,51 @@ struct Window *OpenAppWindow(void)
 
     nw.Type = WBENCHSCREEN;
 
-    return OpenWindow(&nw);
+    win = OpenWindow(&nw);
+    if (win)
+        blankPointer = (UWORD *)AllocMem(BLANK_POINTER_BYTES,
+                                         MEMF_CHIP | MEMF_CLEAR);
+
+    return win;
 }
 
 void CloseAppWindow(struct Window *win)
 {
     if (win)
+    {
+        ClearPointer(win);
         CloseWindow(win);
+    }
+
+    if (blankPointer)
+    {
+        FreeMem(blankPointer, BLANK_POINTER_BYTES);
+        blankPointer = NULL;
+    }
 }
 
-BOOL WindowProcessMessages(struct Window *win)
+BOOL WindowHidePointer(struct Window *win)
+{
+    if (blankPointer)
+    {
+        SetPointer(win, blankPointer, 1, 1, 0, 0);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+void WindowShowPointer(struct Window *win)
+{
+    ClearPointer(win);
+}
+
+BOOL WindowProcessMessages(struct Window *win, BOOL *mouseMoved)
 {
     struct IntuiMessage *msg;
     BOOL quit = FALSE;
+
+    *mouseMoved = FALSE;
 
     while ((msg = (struct IntuiMessage *)GetMsg(win->UserPort)) != NULL)
     {
@@ -66,6 +104,10 @@ BOOL WindowProcessMessages(struct Window *win)
             /* React on key-down only; ignore the key-up event (bit 0x80) */
             if (!(code & IECODE_UP_PREFIX) && code == RAWKEY_ESC)
                 quit = TRUE;
+        }
+        else if (msg->Class == IDCMP_MOUSEMOVE)
+        {
+            *mouseMoved = TRUE;
         }
 
         ReplyMsg((struct Message *)msg);

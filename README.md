@@ -15,6 +15,7 @@ Caratteristiche principali:
 - visualizzazione opzionale dei secondi;
 - separatore lampeggiante nel formato senza secondi;
 - inversione automatica bianco/nero ogni 12 ore;
+- puntatore del mouse nascosto dopo 10 secondi di inattività;
 - aggiornamento dei soli caratteri modificati;
 - uscita tramite il tasto Esc o, da Shell, con Ctrl+C;
 - bitmap del font conservate in CHIP RAM e accessibili direttamente al

@@ -9,10 +9,15 @@ struct Window *OpenAppWindow(void);
 /* Closes a window previously returned by OpenAppWindow(). */
 void CloseAppWindow(struct Window *win);
 
+/* Replaces the system pointer with a transparent one, or restores it. */
+BOOL WindowHidePointer(struct Window *win);
+void WindowShowPointer(struct Window *win);
+
 /*
  * Drains and replies every pending IntuiMessage for 'win'.
  * Returns TRUE if the user asked to quit (ESC key), FALSE otherwise.
+ * Sets 'mouseMoved' when at least one mouse movement was observed.
  */
-BOOL WindowProcessMessages(struct Window *win);
+BOOL WindowProcessMessages(struct Window *win, BOOL *mouseMoved);
 
 #endif /* WINDOW_H */
